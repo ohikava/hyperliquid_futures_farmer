@@ -54,6 +54,70 @@ class Hyperliquid(API):
     def get_mid_price(self, coin):
         return float(self.all_mids()[coin])
     
+    def buy(self, coin, sz, px):
+        order_result = self.order(coin, True, sz, px, order_type={"limit": {"tif": "Ioc"}}, reduce_only=False, cloid=None)
+
+        if order_result["status"] == "ok":
+            for status in order_result["response"]["data"]["statuses"]:
+                try:
+                    filled = status["filled"]
+                    out = {
+                        "px": float(filled['avgPx']),
+                        "sz": float(filled["totalSz"]),
+                        "order_status": "filled",
+                        "side": constants.LONG,
+                        "coin": coin,
+                        "fill_time": time.time(),
+                        'perp': 'hyperliquid',
+                        'fee': HYPERLIQUID_TAKER_FEE * float(filled["totalSz"]) * float(filled["avgPx"])
+                    }
+                    self.last_fill = out
+                    return out 
+                
+                except KeyError:
+                    if "resting" in status:
+                        resting = status['resting']
+                        logger.info(f"Order #{coin} is open")
+                        return {}
+                    else:
+                        logger.error(f"status {json.dumps(status)}")
+                        return {}
+        else:
+            logger.error(f'status {order_result["status"]}')
+            return {}
+
+    def sell(self, coin, sz, px):
+        order_result = self.order(coin, False, sz, px, order_type={"limit": {"tif": "Ioc"}}, reduce_only=False, cloid=None)
+
+        if order_result["status"] == "ok":
+            for status in order_result["response"]["data"]["statuses"]:
+                try:
+                    filled = status["filled"]
+                    out = {
+                        "px": float(filled['avgPx']),
+                        "sz": float(filled["totalSz"]),
+                        "order_status": "filled",
+                        "side": constants.SHORT,
+                        "coin": coin,
+                        "fill_time": time.time(),
+                        'perp': 'hyperliquid',
+                        'fee': HYPERLIQUID_TAKER_FEE * float(filled["totalSz"]) * float(filled["avgPx"])
+                    }
+                    self.last_fill = out
+                    return out 
+                
+                except KeyError:
+                    if "resting" in status:
+                        resting = status['resting']
+                        logger.info(f"Order #{coin} is open")
+                        return {}
+                    else:
+                        logger.error(f"status {json.dumps(status)}")
+                        return {}
+        else:
+            logger.error(f'status {order_result["status"]}')
+            return {}
+    
     def market_open(
         self,
         coin: str,
