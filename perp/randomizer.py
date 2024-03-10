@@ -20,3 +20,6 @@ class Randomizer:
     def get_random_order(self):
         return random.choice([-1, 1])
     
+    def get_random_coins(self, open_positions, n):
+        return random.sample([coin for coin in config.COINS if coin not in open_positions], n)
+    

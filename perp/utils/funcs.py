@@ -1,6 +1,7 @@
 import perp.constants as constants
 from platform import system
 import json 
+import traceback
 
 PLATFORM = system()
 
@@ -25,3 +26,10 @@ def load_json_file(path: str) -> dict:
 def dump_json(file_path: str, data: dict) -> None:
     with open(get_correct_path(file_path), "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4)
+
+def run_with_traceback(func, logger, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return None

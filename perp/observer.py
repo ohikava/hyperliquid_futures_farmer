@@ -1,5 +1,6 @@
 import logging 
 import requests 
+from perp.utils.types import PerpStats
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +23,10 @@ class Observer:
         logger.info(logger_msg)
         self.send_sync_message(logger_msg)
 
-    def show_stats(self, perp1_fees, perp2_fees, perp1_profit, perp2_profit):
-        logger_msg = f"fee1{perp1_fees}$ fee2 {perp2_fees}$ profit1 {perp1_profit}$ profit2 {perp2_profit}$ total {perp1_profit + perp2_profit - perp2_fees - perp1_fees}$"
+    def show_stats(self, perp_stats: PerpStats):
+        logger_msg = f"perp1: {perp_stats['perp1_address']} fees: {perp_stats['perp1_fees']} profit: {perp_stats['perp1_profit']}"
+        logger_msg += f"perp2: {perp_stats['perp2_address']} fees: {perp_stats['perp2_fees']} profit: {perp_stats['perp2_profit']}"
         logger.info(logger_msg)
-        tg_msg = f"fee1: {perp1_fees}$\nfee2: {perp2_fees}$\nprofit1: {perp1_profit}$\nprofit2: {perp2_profit}$\ntotal: {round(perp1_profit + perp2_profit - perp1_fees - perp2_fees, 2)}$"
+
+        tg_msg = f"perp1 wallet: {perp_stats['perp1_address']}\nfees: {perp_stats['perp1_fees']}\nprofit: {perp_stats['perp1_profit']}\n\nperp2 wallet: {perp_stats['perp2_address']}\nfees: {perp_stats['perp2_fees']}\nprofit: {perp_stats['perp2_profit']}"
         self.send_sync_message(tg_msg)

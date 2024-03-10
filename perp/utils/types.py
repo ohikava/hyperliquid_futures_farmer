@@ -1,7 +1,6 @@
 from typing_extensions import TypedDict
-from typing import Union, Dict
-from perp.perps.aevo import Aevo
-from perp.perps.hyperliquid import Hyperliquid
+from typing import Union, Dict, List
+from perp.hyperliquid.hyperliquid_base import HyperliquidBase
 
 Position = TypedDict(
     'Position',
@@ -18,14 +17,43 @@ Position = TypedDict(
     }
 )
 
+ClosedPositionInfo = TypedDict(
+    'CLOSED_POSITION_INFO',
+    {
+        "perp1_profit": float,
+        "perp2_profit": float,
+        "perp1_fees": float,
+        "perp2_fees": float
+    }
+)
 PerpPair = TypedDict(
     "PerpPair",
     {
-        'perp1': Union[Hyperliquid, Aevo],
-        'perp2': Union[Hyperliquid, Aevo],
+        'perp1': HyperliquidBase,
+        'perp2': HyperliquidBase,
         'perp1_positions': Dict[str, Position],
-        'perp2_positions': Dict[str, Position]
+        'perp2_positions': Dict[str, Position],
+        "min_balance": float,
+        "min_position_lifetime": int,
+        "rebalance": bool ,
+        "closed_position_info": List[ClosedPositionInfo],
+        'max_open_positions': int,
+        'leverage': int,
+        'position_size': float 
     }
+)
+
+PerpStats = TypedDict(
+    "PerpStats",
+    {
+        "perp1_address": str,
+        "perp2_address": str,
+        "perp1_fees": float,
+        "perp2_fees": float,
+        "perp1_profit": float,
+        "perp2_profit": float
+    }
+
 )
 
 Proxies = TypedDict(
@@ -42,5 +70,22 @@ Perp = TypedDict(
         "name": str,
         "secret": str,
         "proxy": Proxies
+    }
+)
+
+Balance= TypedDict(
+    "Balance",
+    {
+        "accountValue": float,
+        "totalMarginUsed": float,
+        "available": float 
+    }
+)
+
+Proxies = TypedDict(
+    'Proxies',
+    {
+        "https": str,
+        "http": str
     }
 )

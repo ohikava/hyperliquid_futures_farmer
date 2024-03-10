@@ -1,53 +1,42 @@
-from perp.perps.aevo import Aevo
-from perp.perps.hyperliquid import Hyperliquid
+from perp.hyperliquid.main import Hyperliquid
 from perp.randomizer import Randomizer
 from perp.observer import Observer
-from perp.utils.funcs import calculate_profit, load_json_file, dump_json
-from perp.utils.types import PerpPair, Position, Perp 
+from perp.utils.funcs import calculate_profit, load_json_file, dump_json, run_with_traceback
+from perp.utils.types import PerpPair, Position, Perp, ClosedPositionInfo, PerpStats
 import perp.config as config
 import perp.constants as constants
 import json 
 import threading
 import time 
-from dotenv import load_dotenv
 from os.path import join
 from typing import Union, Dict, List
 
-load_dotenv()
 
-
-strategies_path = "strategies"
+wallets_path = "wallets"
 
 
 class Main():
     def __init__(self):
-        self.load_strategy(join(strategies_path, "strategy.json"))
-
         self.randomizer = Randomizer()
-
         self.observer = Observer()
         self.positions_total = []
+        self.pairs = {}
 
-    def load_strategy(self, strategy_path: str):
-        strategy = load_json_file(strategy_path)
-        perp1 = strategy["perp1"]
-        perp2 = strategy["perp2"]
+        self.load_pair(join(wallets_path, "1.json"))
 
-        self.add_mirror_pair(perp1, perp2)
 
-    def load_perp(self, perp: Perp):
-        if perp['name'] == 'hyperliquid':
-            perp = Hyperliquid.from_row(perp['secret'], proxies=perp['proxies'])
-        elif perp['name'] == 'aevo':
-            perp = Aevo.from_row(perp['secret'], proxies=perp['proxies'])
-        
-        return perp
-    
-    def add_mirror_pair(self, perp1: Perp, perp2: Perp):
-        perp1 = self.load_perp(perp1)
-        perp2 = self.load_perp(perp2)
+    def load_pair(self, wallets_path: str):
+        wallets = load_json_file(wallets_path)
+        perp1 = wallets["perp1"]
+        perp2 = wallets["perp2"]
 
-        self.mirror_pairs[(perp1.address, perp2.address)]= {
+        self.add_pair(perp1, perp2)
+
+    def add_pair(self, perp1: Perp, perp2: Perp):
+        perp1: Hyperliquid = Hyperliquid.from_row(perp1['secret'], proxies=perp1['proxies'])
+        perp2: Hyperliquid = Hyperliquid.from_row(perp2['secret'], proxies=perp2['proxies'])
+
+        self.pairs[(perp1.address, perp2.address)]= {
             'perp1': perp1,
             'perp2': perp2,
             'perp1_positions': {},
@@ -56,28 +45,62 @@ class Main():
     
     def run(self):
         while True:
-            for perp_pair in self.mirror_pairs.values():
-                self.check_should_close_position(perp_pair) 
+            for pair in self.pairs:
+                self.check_user_stats(pair) # Проверяет баланс пользователя, подсчитывает убытки
 
-                self.open_position(perp_pair)
-    
-    def check_should_close_position(self, perp_pair: PerpPair):
-        perp1_positions: Dict[str, Position] = perp_pair['perp1_positions']
-        perp2_positions: Dict[str, Position] = perp_pair['perp2_positions']
-        if not perp1_positions or not perp2_positions:
+                self.check_positions(pair) # Проверяет позиции, не пора ли закрывать, сколько открыто, открыты ли вообще
+
+                self.open_positions(pair) # Открывает позиции, если есть место
+
+
+
+    def check_user_stats(self, pair: PerpPair):
+        """"
+        Проверяет баланс пользователя, подсчитывает убытки, перебалансирует баланс между кошельками
+        """
+        p1 = pair['perp1']
+        p2 = pair['perp2']
+
+        p1_balance = p1.get_balance()
+        p2_balance = p2.get_balance()
+
+        if pair['rebalance'] and abs(p1_balance - p2_balance) / min(p1_balance, p2_balance) >= 0.2:
+            total_sum = p1_balance + p2_balance
+            new_balance = total_sum / 2
+
+            if p1_balance > p2_balance:
+                p1.transfer(p1_balance - new_balance, p2.address)
+            else:
+                p2.transfer(p2_balance - new_balance, p1.address)
+
+            pair['min_balance'] = new_balance
+            pair['rebalance'] = False
+        else:
+            pair['min_balance'] = min(p1_balance, p2_balance)
+
+        self.calculate_stats(pair)
+
+    def open_positions(self, pair: PerpPair):
+        open_positions = pair['perp1_positions'] 
+
+        if len(open_positions) > pair['max_open_positions']:
             return
         
+        open_pairs = list(open_positions.keys())
 
-        coin = list(perp1_positions.keys())[0]
-        perp1_position = perp1_positions[coin]
-        perp2_position = perp2_positions[coin]
+        new_positions = self.randomizer.get_random_coins(open_pairs, pair['max_open_positions'] - len(open_positions))
 
-        fill_time = min(perp1_position["fill_time"], perp2_position["fill_time"])
+        for position in new_positions:
+            self.open_position(pair)
 
-        if time.time() - fill_time < perp1_position["position_lifetime"]:
-            return
+    def check_positions(self, pair: PerpPair):
+        for position in pair['perp1_positions']:
+            assert position in pair['perp2_positions'], f"Position {position} is not in perp2_positions"
 
-        self.close_position(coin, perp_pair)
+            perp1_position = pair['perp1_positions'][position]
+
+            if time.time() - perp1_position["fill_time"] > perp1_position["position_lifetime"]:
+                self.close_position(pair, position)
 
     def open_position(self, perp_pair: PerpPair):
         perp1_positions: Dict[str, Position] = perp_pair['perp1_positions']
@@ -86,8 +109,8 @@ class Main():
         if perp1_positions or perp2_positions:
             return 
 
-        perp1: Union[Hyperliquid, Aevo] = perp_pair['perp1']
-        perp2: Union[Hyperliquid, Aevo] = perp_pair['perp2']
+        perp1: Hyperliquid = perp_pair['perp1']
+        perp2: Hyperliquid = perp_pair['perp2']
 
         coin = self.randomizer.get_random_coin()
         leverage = self.randomizer.get_random_leverage()
@@ -140,8 +163,8 @@ class Main():
         
         perp1_position = perp1_positions[coin]
         perp2_position = perp2_positions[coin]
-        perp1: Union[Hyperliquid, Aevo] = perp_pair['perp1']
-        perp2: Union[Hyperliquid, Aevo] = perp_pair['perp2']
+        perp1: Hyperliquid = perp_pair['perp1']
+        perp2: Hyperliquid = perp_pair['perp2']
         threads = []
 
         if perp1_position["side"] == constants.LONG:
@@ -174,28 +197,36 @@ class Main():
             "perp1_fees": perp1.last_fill["fee"] + perp1_position["fee"],
             "perp2_fees": perp2.last_fill["fee"] + perp2_position["fee"]
         }
-        self.positions_total.clear()
-        self.positions_total.append(total)
+        
+        perp_pair['closed_position_info'].append(total)
         
         perp1_positions.pop(coin)
         perp2_positions.pop(coin)
-
-        self.calculate_stats()
     
-    def calculate_stats(self):
+    def calculate_stats(self, perp_pair: PerpPair):
+        perp1_address = perp_pair['perp1'].address
+        perp2_address = perp_pair['perp2'].address
+
         perp1_fees = 0.0
         perp2_fees = 0.0
-
         perp1_profit = 0.0
         perp2_profit = 0.0
 
-        for deal in self.positions_total:
+        for deal in perp_pair['closed_position_info']:
             perp1_fees += deal["perp1_fees"]
             perp2_fees += deal["perp2_fees"]
 
             perp1_profit += deal["perp1_profit"]
             perp2_profit += deal["perp2_profit"]
         
-        self.observer.show_stats(round(perp1_fees, 2), round(perp2_fees, 2), round(perp1_profit, 2), round(perp2_profit, 2))
+        perp_stats: PerpStats = {
+            "perp1_address": perp1_address,
+            "perp2_address": perp2_address,
+            "perp1_fees": round(perp1_fees, 2),
+            "perp2_fees": round(perp2_fees, 2),
+            "perp1_profit": round(perp1_profit, 2),
+            "perp2_profit": round(perp2_profit, 2)
+        }
+        self.observer.show_stats(perp_stats)
         
 

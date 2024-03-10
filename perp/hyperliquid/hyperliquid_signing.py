@@ -1,6 +1,6 @@
 from typing import TypedDict, Union, Literal, Optional
 from typing_extensions import NotRequired
-from perp.utils.hyperliquid_types import Cloid
+from perp.hyperliquid.hyperliquid_types import Cloid
 from eth_account.messages import encode_structured_data
 import time 
 from decimal import Decimal

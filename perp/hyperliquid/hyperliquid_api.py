@@ -36,7 +36,6 @@ class API:
             }
         )
         self.proxies = proxies
-        print(type(proxies))
         if self.proxies.get('https') or self.proxies.get('http'):
             self.session.proxies.update(self.proxies)
 
