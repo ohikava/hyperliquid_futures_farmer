@@ -26,8 +26,8 @@ class Hyperliquid(API, HyperliquidBase):
         self._meta = self._meta()
         self.coin_to_asset = {asset_info["name"]: asset for (asset, asset_info) in enumerate(self._meta["universe"])}
         self.last_fill = {} 
-        self.size_decimals = config.HL_SIZE_DECIMALS
-        self.price_decimals = config.HL_PRICE_DECIMALS
+        self.size_decimals = config.SIZE_DECIMALS
+        self.price_decimals = config.PRICE_DECIMALS
         self.address = self.wallet.address
         self.name = 'hyperliquid'
 
@@ -44,7 +44,7 @@ class Hyperliquid(API, HyperliquidBase):
         prices = self.prices(coin)
         lowest_px = prices[0]
 
-        tick = config.HL_PRICE_DECIMALS[coin]
+        tick = self.price_decimals[coin]
         print(lowest_px)
         px = lowest_px - 2 * 10 ** (-tick)
         print(px)
@@ -55,7 +55,7 @@ class Hyperliquid(API, HyperliquidBase):
         prices = self.prices(coin)
         highest_px = prices[1]
 
-        tick = config.HL_PRICE_DECIMALS[coin]
+        tick = self.price_decimals[coin]
         print(highest_px)
         px = highest_px + 2 * 10 ** (-tick)
         print(px)

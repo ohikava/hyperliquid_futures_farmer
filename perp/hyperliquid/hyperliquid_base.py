@@ -3,8 +3,6 @@ import perp.config as config
 
 class HyperliquidBase(metaclass=ABCMeta):
     def __init__(self):
-        self.size_decimals = config.HL_SIZE_DECIMALS
-        self.price_decimals = config.HL_PRICE_DECIMALS
         self.address = ""
         self.name = 'hyperliquid'
 
