@@ -37,7 +37,6 @@ def run_with_traceback(func, logger, *args, **kwargs):
     
 def extract_info_from_proxy_row(proxy_row: str) -> Proxy:
     first_half, second_half = proxy_row.split("@")
-    print(first_half)
     _, login, password = first_half.split(":")
     login = login.replace('//', '')
     ip, port = second_half.split(":")

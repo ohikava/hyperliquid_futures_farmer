@@ -13,6 +13,7 @@ Tpsl = Union[Literal["tp"], Literal["sl"]]
 LimitOrderType = TypedDict("LimitOrderType", {"tif": Tif})
 TriggerOrderType = TypedDict("TriggerOrderType", {"triggerPx": float, "isMarket": bool, "tpsl": Tpsl})
 OrderType = TypedDict("OrderType", {"limit": LimitOrderType, "trigger": TriggerOrderType}, total=False)
+CancelRequest = TypedDict("CancelRequest", {"coin": str, "oid": int})
 OrderRequest = TypedDict(
     "OrderRequest",
     {

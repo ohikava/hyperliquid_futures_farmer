@@ -1,6 +1,7 @@
 from typing_extensions import TypedDict
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Literal
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
+import perp.constants as constants
 
 Position = TypedDict(
     'Position',
@@ -97,5 +98,16 @@ Proxy = TypedDict(
         'port': int,
         'username': str,
         'password': str
+    }
+)
+
+UnfilledOrder = TypedDict(
+    'UnfilledOrder',
+    {
+        "coin": str,
+        "sz": float,
+        "type": Union[Literal["MAKER"], Literal["TAKER"]],
+        "long": int,
+        "short": int 
     }
 )
