@@ -1,11 +1,12 @@
 import perp.config as config 
 import perp.constants as constants 
-from perp.hyperliquid.hyperliquid_types import Cloid, Meta
+from perp.hyperliquid.hyperliquid_types import Cloid, Meta, WsMsg
 from perp.hyperliquid.hyperliquid_api import API
 from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderWire, \
                                         get_timestamp_ms, order_request_to_order_wire, order_wires_to_order_action, \
                                         sign_l1_action
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
+from perp.hyperliquid.ws import WebsocketManager
 from perp.utils.types import Proxies, Balance
 import eth_account
 import logging 
@@ -30,6 +31,15 @@ class Hyperliquid(API, HyperliquidBase):
         self.price_decimals = config.PRICE_DECIMALS
         self.address = self.wallet.address
         self.name = 'hyperliquid'
+
+        self.ws = WebsocketManager(self.base_url, proxies.get('http'))
+        self.ws.start()
+
+        self.ws.subscribe({ "type": "userEvents", "user": f"{self.address}" }, self.on_user_event)
+        
+    def on_user_event(self, msg: WsMsg):
+        print(msg)
+
 
     def market_buy(self, coin, sz, px=None):
         return self.market_open(coin, True, sz, px)

@@ -89,3 +89,13 @@ Proxies = TypedDict(
         "http": str
     }
 )
+
+Proxy = TypedDict(
+    'Proxy',
+    {
+        'host': str,
+        'port': int,
+        'username': str,
+        'password': str
+    }
+)

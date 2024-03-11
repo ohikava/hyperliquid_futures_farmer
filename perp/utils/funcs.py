@@ -2,6 +2,7 @@ import perp.constants as constants
 from platform import system
 import json 
 import traceback
+from perp.utils.types import Proxy
 
 PLATFORM = system()
 
@@ -33,3 +34,16 @@ def run_with_traceback(func, logger, *args, **kwargs):
     except Exception as e:
         logger.error(traceback.format_exc())
         return None
+    
+def extract_info_from_proxy_row(proxy_row: str) -> Proxy:
+    first_half, second_half = proxy_row.split("@")
+    print(first_half)
+    _, login, password = first_half.split(":")
+    login = login.replace('//', '')
+    ip, port = second_half.split(":")
+    return {
+        "host": ip,
+        "port": int(port),
+        "username": login,
+        "password": password
+    }
