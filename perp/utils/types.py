@@ -1,46 +1,14 @@
 from typing_extensions import TypedDict
-from typing import Union, Dict, List, Literal
+from typing import Union, Dict, List, Literal, Callable
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
 import perp.constants as constants
 
-Position = TypedDict(
-    'Position',
-    {
-        "px": float,
-        "sz": float,
-        "order_status": str,
-        "side": str,
-        "coin": str,
-        "fill_time": int,
-        "perp": str,
-        "fee": float,
-        "position_lifetime": int 
-    }
-)
-
-ClosedPositionInfo = TypedDict(
-    'CLOSED_POSITION_INFO',
-    {
-        "perp1_profit": float,
-        "perp2_profit": float,
-        "perp1_fees": float,
-        "perp2_fees": float
-    }
-)
 PerpPair = TypedDict(
     "PerpPair",
     {
         'perp1': HyperliquidBase,
         'perp2': HyperliquidBase,
-        'perp1_positions': Dict[str, Position],
-        'perp2_positions': Dict[str, Position],
-        "min_balance": float,
-        "min_position_lifetime": int,
-        "rebalance": bool ,
-        "closed_position_info": List[ClosedPositionInfo],
-        'max_open_positions': int,
-        'leverage': int,
-        'position_size': float 
+        "positions": Dict[str, int]
     }
 )
 
@@ -56,24 +24,6 @@ PerpStats = TypedDict(
     }
 
 )
-
-Proxies = TypedDict(
-    'Proxies',
-    {
-        "https": str,
-        "http": str
-    }
-)
-
-Perp = TypedDict(
-    "Perp",
-    {
-        "name": str,
-        "secret": str,
-        "proxy": Proxies
-    }
-)
-
 Balance= TypedDict(
     "Balance",
     {
@@ -108,6 +58,48 @@ UnfilledOrder = TypedDict(
         "sz": float,
         "type": Union[Literal["MAKER"], Literal["TAKER"]],
         "long": int,
-        "short": int 
+        "short": int ,
+        "cb": Callable
+    }
+)
+
+RepeatingOrder = TypedDict(
+    'RepeatingOrder',
+    {
+        'sz': float, 
+        'side': str,
+        'uid': int 
+    }
+)
+
+Position = TypedDict(
+    "OpenPosition",
+    {
+        "sz": float,
+        "entry_price": float,
+        "side": str,
+        "lifetime": int,
+        "open_time": int,
+        "fee": float 
+    }
+)
+
+WalletConfig = TypedDict(
+    "WalletDict",
+    {
+        "min_position_lifetime": int,
+        "max_position_lifetime": int,
+        "max_open_positions": int,
+        "min_open_positions": int,
+        "position_size": float
+    }
+)
+
+MakerOrder = TypedDict(
+    "MakerOrder",
+    {
+        "long": int,
+        "short": int,
+        "sz": float 
     }
 )

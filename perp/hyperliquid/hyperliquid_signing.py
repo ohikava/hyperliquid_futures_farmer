@@ -1,6 +1,5 @@
 from typing import TypedDict, Union, Literal, Optional
 from typing_extensions import NotRequired
-from perp.hyperliquid.hyperliquid_types import Cloid
 from eth_account.messages import encode_structured_data
 import time 
 from decimal import Decimal
@@ -23,7 +22,6 @@ OrderRequest = TypedDict(
         "limit_px": float,
         "order_type": OrderType,
         "reduce_only": bool,
-        "cloid": NotRequired[Optional[Cloid]],
     },
     total=False,
 )
@@ -73,8 +71,7 @@ def order_request_to_order_wire(order: OrderRequest, asset: int) -> OrderWire:
         "r": order["reduce_only"],
         "t": order_type_to_wire(order["order_type"]),
     }
-    if "cloid" in order and order["cloid"] is not None:
-        order_wire["c"] = order["cloid"].to_raw()
+ 
     return order_wire
 
 def order_wires_to_order_action(order_wires):

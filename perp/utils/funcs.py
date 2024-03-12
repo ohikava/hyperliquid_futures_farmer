@@ -2,7 +2,10 @@ import perp.constants as constants
 from platform import system
 import json 
 import traceback
+import logging 
 from perp.utils.types import Proxy
+
+logger = logging.getLogger(__name__)
 
 PLATFORM = system()
 
@@ -46,3 +49,20 @@ def extract_info_from_proxy_row(proxy_row: str) -> Proxy:
         "username": login,
         "password": password
     }
+
+def handle_order_results(order_result):
+    if order_result["status"] == "ok":
+        for status in order_result["response"]["data"]["statuses"]:
+            try:
+                filled = status["filled"]
+                return filled  
+            except KeyError:
+                if "resting" in status:
+                    resting = status['resting']
+                    return resting['oid']
+                else:
+                    logger.error(f"status {json.dumps(status)}")
+                    return {}
+    else:
+        logger.error(f'status {order_result["status"]}')
+        return {}
