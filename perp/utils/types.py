@@ -103,3 +103,12 @@ MakerOrder = TypedDict(
         "sz": float 
     }
 )
+
+ClosedPosition = TypedDict(
+    "ClosedPosition",
+    {
+        "pnl": float,
+        "fee": float,
+        "side": str
+    }
+)

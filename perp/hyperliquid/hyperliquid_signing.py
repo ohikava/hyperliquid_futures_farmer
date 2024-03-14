@@ -54,7 +54,7 @@ def order_type_to_wire(order_type: OrderType) -> OrderTypeWire:
     raise ValueError("Invalid order type", order_type)
 
 def float_to_wire(x: float) -> str:
-    rounded = "{:.8f}".format(x)
+    rounded = "{:.8f}".format(float(x))
     if abs(float(rounded) - x) >= 1e-12:
         raise ValueError("float_to_wire causes rounding", x)
     if rounded == "-0":

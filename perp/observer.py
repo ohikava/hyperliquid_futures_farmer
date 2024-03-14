@@ -1,11 +1,22 @@
 import logging 
 import requests 
 from perp.utils.types import PerpStats
+import perp.constants as constants 
+import perp.config as config 
+from datetime import datetime
+from collections import defaultdict
+import json 
+import os 
 
 logger = logging.getLogger(__name__)
 
 client_id=-1002005413825
 token = "6827720178:AAGyGWS3m0-0VlSujJvqekpUIhWeZtpvuzA"
+
+path_file = f"fills/{datetime.today().strftime('%Y-%m-%d')}.txt"
+
+with open(path_file, 'w') as file:
+    pass 
 
 class Observer:
     def send_sync_message(self, msg):
@@ -17,16 +28,32 @@ class Observer:
         }
 
         requests.post(uri, json=body)
-    
-    def order_filled(self, order_info, order_type):
-        logger_msg = f"{order_info['perp']} {order_info['side']} {order_info['coin']} sz {order_info['sz']} px {order_info['px']} tp {order_type} filled"
-        logger.info(logger_msg)
-        self.send_sync_message(logger_msg)
 
-    def show_stats(self, perp_stats: PerpStats):
-        logger_msg = f"perp1: {perp_stats['perp1_address']} fees: {perp_stats['perp1_fees']} profit: {perp_stats['perp1_profit']}"
-        logger_msg += f"perp2: {perp_stats['perp2_address']} fees: {perp_stats['perp2_fees']} profit: {perp_stats['perp2_profit']}"
+    def position_closed(self, token, p1_pnl, p2_pnl, p1_fee, p2_fee, p1_side):
+        logger_msg = f"{token} PNL: {p1_pnl + p2_pnl}. Fees: {p1_fee+p2_fee}"
         logger.info(logger_msg)
 
-        tg_msg = f"perp1 wallet: {perp_stats['perp1_address']}\nfees: {perp_stats['perp1_fees']}\nprofit: {perp_stats['perp1_profit']}\n\nperp2 wallet: {perp_stats['perp2_address']}\nfees: {perp_stats['perp2_fees']}\nprofit: {perp_stats['perp2_profit']}"
+        tg_msg = f"{token} {p1_side}\n\nperp1 pnl: {p1_pnl}\nfee: {p1_fee}\n\nperp2 pnl: {p2_pnl}\nfee{p2_fee}\n\nTotal: {p1_pnl+p2_pnl-p1_fee-p2_fee}"
+
         self.send_sync_message(tg_msg)
+        
+    def save_fill(self, fill: dict, wallet: str):
+        sz = float(fill['sz'])
+        px = round(float(fill['px']),5)
+        fee = float(fill['fee'])
+        side = constants.LONG if fill['side'] == 'B' else constants.SHORT
+        coin = fill['coin']
+
+        path_file = f"fills/{datetime.today().strftime('%Y-%m-%d')}.txt"
+        res = {
+            "coin": coin,
+            "px": px,
+            "sz": sz, 
+            "fee": fee,
+            "side": side,
+            "address": wallet
+        }
+        with open(path_file, 'a') as file:
+            file.write(f"{json.dumps(res)}\n")
+
+        

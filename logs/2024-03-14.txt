@@ -1,0 +1,41 @@
+07:22:52 websocket [INFO] Websocket connected
+07:22:53 websocket [INFO] Websocket connected
+07:22:53 perp.utils.funcs [INFO] WLD 3.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561128723}}]}}}
+07:22:54 perp.utils.funcs [INFO] WLD 3.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561131390}}]}}}
+07:23:01 perp.utils.funcs [INFO] WLD 3.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '3.1', 'avgPx': '9.5386', 'oid': 13561145365}}]}}}
+07:23:05 perp.utils.funcs [INFO] XRP 45.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561153868}}]}}}
+07:23:06 perp.utils.funcs [INFO] XRP 45.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561157746}}]}}}
+07:23:15 perp.utils.funcs [INFO] XRP 45.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '45.0', 'avgPx': '0.66725', 'oid': 13561181722}}]}}}
+07:23:19 perp.utils.funcs [INFO] ARB 15.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561195206}}]}}}
+07:23:20 perp.utils.funcs [INFO] ARB 15.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561198576}}]}}}
+07:23:38 perp.utils.funcs [INFO] ARB 15.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '15.1', 'avgPx': '1.9916', 'oid': 13561243931}}]}}}
+07:25:41 perp.utils.funcs [INFO] WLD 3.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561496792}}]}}}
+07:25:43 perp.utils.funcs [INFO] WLD 3.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561499895}}]}}}
+07:25:51 perp.utils.funcs [INFO] WLD 3.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '3.1', 'avgPx': '9.5068', 'oid': 13561519470}}]}}}
+07:25:51 perp.observer [INFO] WLD PNL: 0.008990000000001067. Fees: 0.026035
+07:26:54 perp.utils.funcs [INFO] NEO 1.78 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561672499}}]}}}
+07:26:55 perp.utils.funcs [INFO] NEO 1.78 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561674929}}]}}}
+07:27:10 perp.utils.funcs [INFO] NEO 1.78 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '1.78', 'avgPx': '16.842', 'oid': 13561711734}}]}}}
+07:27:13 perp.utils.funcs [INFO] XRP 45.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561719412}}]}}}
+07:27:15 perp.utils.funcs [INFO] XRP 45.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561725394}}]}}}
+07:27:18 perp.utils.funcs [INFO] XRP 45.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '45.0', 'avgPx': '0.66437', 'oid': 13561735747}}]}}}
+07:27:18 perp.observer [INFO] XRP PNL: -0.0031500000000006523. Fees: 0.026125000000000002
+07:27:21 perp.utils.funcs [INFO] ARB 15.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561744283}}]}}}
+07:27:23 perp.utils.funcs [INFO] ARB 15.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561748828}}]}}}
+07:27:29 perp.utils.funcs [INFO] ARB 15.1 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '15.1', 'avgPx': '1.9868', 'oid': 13561770825}}]}}}
+07:27:29 perp.observer [INFO] ARB PNL: 0.03472999999999952. Fees: 0.026487
+07:28:33 perp.utils.funcs [INFO] DYDX 7.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561919311}}]}}}
+07:28:34 perp.utils.funcs [INFO] DYDX 7.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561923154}}]}}}
+07:28:38 perp.utils.funcs [INFO] DYDX 7.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '7.8', 'avgPx': '3.8345', 'oid': 13561936145}}]}}}
+07:28:41 perp.utils.funcs [INFO] kSHIB 940.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'error': 'Post only order would have immediately matched, bbo was 0.031898@0.031903. asset=38'}]}}}
+07:28:42 perp.utils.funcs [INFO] kSHIB 940.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561945995}}]}}}
+07:28:44 perp.utils.funcs [INFO] kSHIB 940.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13561947669}}]}}}
+07:28:52 perp.utils.funcs [INFO] kSHIB 940.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '940.0', 'avgPx': '0.031921', 'oid': 13561967392}}]}}}
+07:30:55 perp.utils.funcs [INFO] DYDX 7.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13562318484}}]}}}
+07:30:57 perp.utils.funcs [INFO] DYDX 7.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13562325629}}]}}}
+07:31:01 perp.utils.funcs [INFO] DYDX 7.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '7.8', 'avgPx': '3.8036', 'oid': 13562340131}}]}}}
+07:31:01 perp.observer [INFO] DYDX PNL: 0.028080000000000382. Fees: 0.025972
+07:31:04 perp.utils.funcs [INFO] NEO 1.78 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13562355509}}]}}}
+07:31:06 perp.utils.funcs [INFO] NEO 1.78 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13562363258}}]}}}
+07:31:12 perp.utils.funcs [INFO] NEO 1.78 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '1.78', 'avgPx': '16.796', 'oid': 13562387723}}]}}}
+07:31:12 perp.observer [INFO] NEO PNL: 0.08187999999999888. Fees: 0.026098000000000003

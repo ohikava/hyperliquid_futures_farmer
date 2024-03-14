@@ -1,0 +1,97 @@
+11:56:12 websocket [INFO] Websocket connected
+11:56:14 perp.utils.funcs [INFO] BCH 0.069 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435306403}}]}}}
+11:56:14 websocket [INFO] Websocket connected
+11:56:15 perp.utils.funcs [INFO] BCH 0.069 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435307026}}]}}}
+11:56:23 perp.utils.funcs [INFO] BCH 0.069 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '0.069', 'avgPx': '434.77', 'oid': 13435319897}}]}}}
+11:56:25 perp.utils.funcs [INFO] TIA 1.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435322213}}]}}}
+11:56:26 perp.utils.funcs [INFO] TIA 1.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435323768}}]}}}
+11:56:36 perp.utils.funcs [INFO] TIA 1.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '1.8', 'avgPx': '17.08', 'oid': 13435335288}}]}}}
+11:56:38 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435337367}}]}}}
+11:56:40 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435338193}}]}}}
+11:56:48 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '44.0', 'avgPx': '0.68379', 'oid': 13435350613}}]}}}
+11:58:52 perp.utils.funcs [INFO] BCH 0.069 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435508419}}]}}}
+11:58:54 perp.utils.funcs [INFO] BCH 0.069 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435509793}}]}}}
+11:59:01 perp.utils.funcs [INFO] BCH 0.069 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '0.069', 'avgPx': '434.55', 'oid': 13435517385}}]}}}
+11:59:01 perp.observer [INFO] BCH PNL: 0.022769999999994982. Fees: 0.026149999999999996
+11:59:04 perp.utils.funcs [INFO] TIA 1.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435521991}}]}}}
+11:59:06 perp.utils.funcs [INFO] TIA 1.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435524250}}]}}}
+11:59:18 perp.utils.funcs [INFO] TIA 1.8 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '1.8', 'avgPx': '17.054', 'oid': 13435540680}}]}}}
+11:59:18 perp.observer [INFO] TIA PNL: 0.0035999999999980006. Fees: 0.026787000000000002
+12:00:22 perp.utils.funcs [INFO] DOGE 178.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435618401}}]}}}
+12:00:23 perp.utils.funcs [INFO] DOGE 178.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435619672}}]}}}
+12:00:39 perp.utils.funcs [INFO] DOGE 178.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '178.0', 'avgPx': '0.16884', 'oid': 13435645383}}]}}}
+12:00:42 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435649207}}]}}}
+12:00:42 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435650006}}]}}}
+12:01:00 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '2.19', 'avgPx': '13.716', 'oid': 13435674736}}]}}}
+12:01:03 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435680035}}]}}}
+12:01:04 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435683640}}]}}}
+12:01:08 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '44.0', 'avgPx': '0.68219', 'oid': 13435690376}}]}}}
+12:01:08 perp.observer [INFO] XRP PNL: 0.024639999999995332. Fees: 0.026499
+12:02:15 perp.utils.funcs [INFO] kPEPE 3270.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435786083}}]}}}
+12:02:15 perp.utils.funcs [INFO] kPEPE 3270.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435788307}}]}}}
+12:02:28 perp.utils.funcs [INFO] kPEPE 3270.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '3270.0', 'avgPx': '0.009173', 'oid': 13435802686}}]}}}
+12:03:30 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435872178}}]}}}
+12:03:31 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435873532}}]}}}
+12:03:46 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435889239}}]}}}
+12:03:48 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435891766}}]}}}
+12:03:59 perp.utils.funcs [INFO] ATOM 2.19 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '2.19', 'avgPx': '13.726', 'oid': 13435903651}}]}}}
+12:03:59 perp.observer [INFO] ATOM PNL: 0.030659999999998563. Fees: 0.026201000000000002
+12:04:03 perp.utils.funcs [INFO] DOGE 178.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435909358}}]}}}
+12:04:05 perp.utils.funcs [INFO] DOGE 178.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13435911820}}]}}}
+12:04:17 perp.utils.funcs [INFO] DOGE 178.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '178.0', 'avgPx': '0.16905', 'oid': 13435927620}}]}}}
+12:04:17 perp.observer [INFO] DOGE PNL: 0.03559999999999608. Fees: 0.026517
+12:05:21 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436001033}}]}}}
+12:05:22 perp.utils.funcs [INFO] XRP 44.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436002020}}]}}}
+12:05:44 perp.utils.funcs [INFO] XRP 8.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'error': 'Order must have minimum value of $10. asset=25'}]}}}
+12:05:47 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436030739}}]}}}
+12:05:48 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436031636}}]}}}
+12:06:10 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436056744}}]}}}
+12:06:11 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436057889}}]}}}
+12:06:33 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436083682}}]}}}
+12:06:34 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436084374}}]}}}
+12:06:49 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '0.31', 'avgPx': '96.162', 'oid': 13436098048}}]}}}
+12:06:51 perp.utils.funcs [INFO] kPEPE 3270.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436099912}}]}}}
+12:06:52 perp.utils.funcs [INFO] kPEPE 3270.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436100841}}]}}}
+12:07:07 perp.utils.funcs [INFO] kPEPE 3270.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436126157}}]}}}
+12:07:07 perp.main [ERROR] Traceback (most recent call last):
+  File "/Users/ivan/Documents/projects/hyperliquid_farmer/perp/utils/funcs.py", line 36, in run_with_traceback
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ivan/Documents/projects/hyperliquid_farmer/perp/main.py", line 130, in close_position_maker
+    p2_oid = p2.close_maker_position(coin)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ivan/Documents/projects/hyperliquid_farmer/perp/hyperliquid/main.py", line 178, in close_maker_position
+    side = self.positions[coin]["side"]
+           ~~~~~~~~~~~~~~^^^^^^
+KeyError: 'kPEPE'
+
+12:11:44 websocket [ERROR] Connection to remote host was lost. - goodbye
+12:11:45 websocket [INFO] Websocket connected
+12:11:45 websocket [ERROR] Connection to remote host was lost. - goodbye
+12:11:48 websocket [INFO] Websocket connected
+12:12:02 perp.utils.funcs [INFO] INJ 0.6 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436473243}}]}}}
+12:12:03 perp.utils.funcs [INFO] INJ 0.6 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436474286}}]}}}
+12:12:17 perp.utils.funcs [INFO] INJ 0.6 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '0.6', 'avgPx': '48.031', 'oid': 13436492684}}]}}}
+12:12:20 perp.utils.funcs [INFO] MATIC 23.6 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436497853}}]}}}
+12:12:21 perp.utils.funcs [INFO] MATIC 23.6 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436498875}}]}}}
+12:12:34 perp.utils.funcs [INFO] MATIC 23.6 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '23.6', 'avgPx': '1.2733', 'oid': 13436512262}}]}}}
+12:12:37 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436515037}}]}}}
+12:12:39 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436516197}}]}}}
+12:12:53 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436527851}}]}}}
+12:12:55 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436529076}}]}}}
+12:13:06 perp.utils.funcs [INFO] LTC 0.31 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'filled': {'totalSz': '0.31', 'avgPx': '95.965', 'oid': 13436545187}}]}}}
+12:13:06 perp.observer [INFO] LTC PNL: 0.012709999999994608. Fees: 0.026264
+12:14:10 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436617476}}]}}}
+12:14:11 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436618420}}]}}}
+12:14:33 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436641253}}]}}}
+12:14:34 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436641940}}]}}}
+12:14:56 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436665395}}]}}}
+12:14:57 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436666192}}]}}}
+12:15:19 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436691935}}]}}}
+12:15:20 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436692905}}]}}}
+12:15:43 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436722709}}]}}}
+12:15:44 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436723977}}]}}}
+12:16:07 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436752111}}]}}}
+12:16:08 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436753595}}]}}}
+12:16:30 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436777658}}]}}}
+12:16:31 perp.utils.funcs [INFO] TRX 228.0 {'status': 'ok', 'response': {'type': 'order', 'data': {'statuses': [{'resting': {'oid': 13436780237}}]}}}

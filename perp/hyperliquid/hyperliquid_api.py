@@ -6,6 +6,8 @@ import requests
 from typing import Any
 import perp.constants as constants 
 
+
+logger = logging.getLogger(__name__)
 class Error(Exception):
     pass
 
@@ -63,6 +65,7 @@ class API:
             try:
                 err = json.loads(response.text)
             except JSONDecodeError:
+                logger.error(response.text)
                 raise ClientError(status_code, None, response.text, None, response.headers)
             error_data = None
             if "data" in err:

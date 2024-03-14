@@ -50,19 +50,24 @@ def extract_info_from_proxy_row(proxy_row: str) -> Proxy:
         "password": password
     }
 
-def handle_order_results(order_result):
+def handle_order_results(order_result, coin, sz):
+    logger.info(f"{coin} {sz} {order_result}")
     if order_result["status"] == "ok":
         for status in order_result["response"]["data"]["statuses"]:
             try:
                 filled = status["filled"]
-                return filled  
+                # logger.info(f"{coin} {sz} got fill: {filled}")
+                return {**filled, "code": constants.FILLED}  
             except KeyError:
                 if "resting" in status:
                     resting = status['resting']
-                    return resting['oid']
+                    # logger.info(f"got resting: {resting}")
+                    return {**resting, "code": constants.RESTING}
                 else:
-                    logger.error(f"status {json.dumps(status)}")
-                    return {}
+                    # logger.error(f"{coin} {sz} got unexpected field {status}")
+                    if "Post only order would have immediately matched" in status["error"]:
+                        return {"code": constants.ERROR_POST_ORDER}
+                    return {"code": constants.ERROR_FIELD}
     else:
-        logger.error(f'status {order_result["status"]}')
-        return {}
+        # logger.error(f'{coin} {sz} got error {order_result["status"]}')
+        return {"code": constants.ERROR}

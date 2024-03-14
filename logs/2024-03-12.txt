@@ -1,0 +1,5 @@
+06:42:44 websocket [INFO] Websocket connected
+06:42:45 websocket [INFO] Websocket connected
+06:42:47 perp.hyperliquid.main [ERROR] status {"error": "Order has invalid size."}
+06:42:51 perp.hyperliquid.main [ERROR] status {"error": "Order has invalid size."}
+06:43:56 perp.hyperliquid.main [ERROR] status {"error": "Price must be divisible by tick size. asset=31"}

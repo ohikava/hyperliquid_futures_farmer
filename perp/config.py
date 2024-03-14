@@ -18,9 +18,6 @@ SLEEP = 0.5
 MIN_SLEEP_TIME = 1
 MAX_SLEEP_TIME = 3
 
-MAX_OPEN_POSITIONS = 2
-MIN_OPEN_POSITIONS = 3
-
 WAIT_BEFORE_ORDER_MIN = 3
 WAIT_BEFORE_ORDER_MAX = 5
 
@@ -39,3 +36,5 @@ with open("coins.json") as file:
 PRICE_DECIMALS = {key:value[0] for key, value in decimals.items()}
 SIZE_DECIMALS = {key:value[1] for key, value in decimals.items()}
 COINS = {key for key in decimals}
+
+LOW_LIQUIDITY_COINS = set(['TRX'])

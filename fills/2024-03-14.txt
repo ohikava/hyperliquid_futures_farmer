@@ -1,0 +1,1 @@
+{"coin": "NEO", "px": 16.796, "sz": 1.78, "fee": 0.010044, "side": "LONG", "address": "0xC3c13AbC6709DC79E93767174D6cCe657E4a5b7b"}
