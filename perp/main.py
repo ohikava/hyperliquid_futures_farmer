@@ -9,7 +9,7 @@ import time
 from os.path import join
 from typing import List
 import logging 
-
+import os 
 logger = logging.getLogger(__name__)
 
 
@@ -22,7 +22,9 @@ class Main():
         self.pairs: List[PerpPair] = []
         self.last_closed_position = ()
 
-        self.add_wallets(join(wallets_path, "1.json"))
+        wallets = os.listdir(wallets_path)
+        for wallet in wallets:
+            self.add_wallets(join(wallets_path, wallet))
 
     def add_wallets(self, wallets_path: str):
         wallets = load_json_file(wallets_path)
