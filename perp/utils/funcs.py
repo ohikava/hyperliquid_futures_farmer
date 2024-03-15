@@ -20,6 +20,8 @@ def get_correct_path(path: str) -> str:
         return path.replace("/", "\\")
     elif PLATFORM == "Darwin":
         return path.replace("\\", "/")
+    else:
+        return path.replace("\\", "/")
 
 
 def load_json_file(path: str) -> dict:
