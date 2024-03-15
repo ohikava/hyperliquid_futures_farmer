@@ -24,6 +24,8 @@ class Main():
 
         wallets = os.listdir(wallets_path)
         for wallet in wallets:
+            if not wallet.endswith('.json'):
+                continue
             self.add_wallets(join(wallets_path, wallet))
 
     def add_wallets(self, wallets_path: str):
