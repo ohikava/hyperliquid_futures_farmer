@@ -10,6 +10,7 @@ from os.path import join
 from typing import List
 import logging 
 import os 
+import threading
 logger = logging.getLogger(__name__)
 
 
@@ -41,6 +42,7 @@ class Main():
             'perp2': perp2
         }
         self.pairs.append(res)
+        self.clear_perps(self.pairs[-1])
 
     def run(self):
         ix = 0
@@ -64,6 +66,19 @@ class Main():
             ix += 1
             time.sleep(60 * 1)
 
+    def clear_perps(self, perp_pair: PerpPair):
+        threads = [threading.Thread(target=perp_pair['perp1'].close_all_orders), threading.Thread(target=perp_pair['perp2'].close_all_orders)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        threads = [threading.Thread(target=perp_pair['perp1'].close_all_positions), threading.Thread(target=perp_pair['perp2'].close_all_positions)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+    
 
     def open_position(self, perp_pair: PerpPair, coin: str):
         perp1: Hyperliquid = perp_pair['perp1']

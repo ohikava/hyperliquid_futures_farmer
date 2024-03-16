@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 import perp.config as config 
 import perp.constants as constants 
 from perp.hyperliquid.hyperliquid_types import Meta, WsMsg
@@ -49,6 +50,8 @@ class Hyperliquid(API, HyperliquidBase):
         self._user_event_update = None 
         self.closed_positions: Dict[str, ClosedPosition] = {}
 
+        self.close = {}
+
     """Sockets and events"""
     def _reload_socket(self, _ws, *args, **kwargs):
         self.ws = WebsocketManager(self.base_url, self.proxies.get('http'), self._reload_socket)
@@ -65,7 +68,14 @@ class Hyperliquid(API, HyperliquidBase):
             side = constants.LONG if fill['side'] == 'B' else constants.SHORT 
             observer.save_fill(fill, wallet=self.address)
 
-            if coin in self.positions:
+            if coin in deepcopy(self.close):
+                sz = float(fill['sz'])
+                self.close[coin] -= sz 
+
+                if self.close[coin] == 0.0:
+                    self.close.pop(coin)
+
+            if coin in deepcopy(self.positions):
                 if self.positions[coin]["side"] != side:
                     new_sz = self.positions[coin]['sz'] - float(fill['sz'])
                     if new_sz == 0:
@@ -87,7 +97,7 @@ class Hyperliquid(API, HyperliquidBase):
                 continue 
 
 
-            if coin in self.maker_orders:
+            if coin in deepcopy(self.maker_orders):
                 new_sz = self.maker_orders[coin]['sz'] - float(fill['sz'])
                 if new_sz == 0.0:
                     opposite_side = 'short' if fill['side'] == 'B' else 'long'
@@ -327,6 +337,9 @@ class Hyperliquid(API, HyperliquidBase):
     def _get_user_state(self):
         return self.post("/info", {"type": "clearinghouseState", "user": self.address})
 
+    def get_open_orders(self):
+        return self.post("/info", {"type": "openOrders", "user": self.address})
+    
     """Wallets and Info"""
     def get_positions(self):
         user_state = self._get_user_state()
@@ -378,3 +391,31 @@ class Hyperliquid(API, HyperliquidBase):
                 self.repeating_orders[coin]['uid'] = uid 
 
             time.sleep(8)
+
+    def close_all_orders(self):
+        open_orders = self.get_open_orders()
+
+        for order in open_orders:
+            self.cancel(order['coin'], order['oid'])
+
+    def close_all_positions(self):
+        open_positions = self.get_positions()
+
+        for position in open_positions:
+            coin = position.get('position', {}).get('coin', "")
+            sz = abs(float(position.get('position', {}).get("szi", 0)))
+            side = constants.LONG if float(position.get('position', {}).get("szi", 1)) > 0 else constants.SHORT 
+
+            self.close[coin] = sz 
+            if side == constants.LONG:
+                logger.info(f"{coin} {sz} {self.market_sell(coin, sz)}")
+            else:
+                logger.info(f"{coin} {sz} {self.market_buy(coin, sz)}")
+                
+        
+
+            
+            
+            
+            
+
