@@ -41,6 +41,9 @@ class Main():
         self.pairs.append((perp1, perp2))
         if not perp1.config['load_saved_positions']:
             self.clear_perps(self.pairs[-1])
+        else:
+            perp1.close_all_orders()
+            perp2.close_all_orders()
 
     def run(self):
         ix = 0
@@ -226,39 +229,6 @@ class Main():
             t.start()
         for t in threads:
             t.join()
-
-    def clear_error_positions(self, perp_pair: Tuple[Hyperliquid, Hyperliquid]):
-        p1, p2 = perp_pair
-
-        p1_pos, p2_pos = p1.positions, p2.positions
-        p1_orders, p2_orders = p1.orders, p2.orders
-
-        for coin, value in p1_pos:
-            if not p2_orders.get(coin, {}).get('oid', "") and not p2_orders.get(coin, {}).get('oid', ""):
-                if coin not in p2_pos:
-                    if value['side'] == constants.LONG:
-                        p1.market_sell(coin, p1_pos[coin]['sz'])
-                    else:
-                        p1.market_buy(coin, p1_pos[coin]['sz'])
-                elif p2_pos[coin]['sz'] < p1_pos[coin]['sz']:
-                    if value['side'] == constants.LONG:
-                        p1.market_sell(coin, p1_pos[coin]['sz'] - p2_pos[coin]['sz'])
-                    else:
-                        p1.market_buy(coin, p1_pos[coin]['sz'] - p2_pos[coin]['sz'])
-
-        for coin, value in p2_pos:
-            if not p1_orders.get(coin, {}).get('oid', "") and not p2_orders.get(coin, {}).get('oid', ""):
-                if coin not in p1_pos:
-                    if value['side'] == constants.LONG:
-                        p2.market_sell(coin, p2_pos[coin]['sz'])
-                    else:
-                        p2.market_buy(coin, p2_pos[coin]['sz'])
-                elif p1_pos[coin]['sz'] < p2_pos[coin]['sz']:
-                    if value['side'] == constants.LONG:
-                        p2.market_sell(coin, p2_pos[coin]['sz'] - p1_pos[coin]['sz'])
-                    else:
-                        p2.market_buy(coin, p2_pos[coin]['sz'] - p1_pos[coin]['sz'])
-    
     
     def clean(self):
         for p in self.pairs:
