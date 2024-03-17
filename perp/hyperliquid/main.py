@@ -16,12 +16,13 @@ import logging
 from typing import Optional, Any, List, cast, Dict, Callable
 import time 
 import traceback 
+import os 
 
 logger = logging.getLogger(__name__)
 
 observer = Observer()
 
-positions_path = "positions.json"
+positions_path = "positions"
 
 class Hyperliquid(API, HyperliquidBase):
     def __init__(self, private_key: str, proxies: Proxies, wallet_config: WalletConfig):
@@ -40,9 +41,12 @@ class Hyperliquid(API, HyperliquidBase):
         self.orders: Dict[str, Order] = {}
         self.repeating_orders: Dict[str, RepeatingOrder] = {} # EXPERIMENTS
         self.positions: Dict[str, Position] = {}
+
+        self.positions_path = os.path.join(positions_path, f"{self.address}.json")
         if self.config["load_saved_positions"]:
-            all_positions = load_json_file(positions_path)
-            self.positions: Dict[str, Position] = all_positions.get(self.address, {})
+
+            all_positions = load_json_file(self.positions_path)
+            self.positions: Dict[str, Position] = all_positions if all_positions else {}
 
         self.proxies = proxies
 
@@ -94,9 +98,7 @@ class Hyperliquid(API, HyperliquidBase):
                     if not self.positions[coin]['sz']:
                         self.positions.pop(coin)
 
-                    all_positions = load_json_file(positions_path)
-                    all_positions[self.address] = self.positions
-                    dump_json(positions_path, all_positions)
+                dump_json(self.positions_path, self.positions)
 
             else:
                 self.positions[coin] = {
@@ -105,10 +107,7 @@ class Hyperliquid(API, HyperliquidBase):
                     "side": side,
                     "sz": float(fill["sz"])
                 }
-
-                all_positions = load_json_file(positions_path)
-                all_positions[self.address] = self.positions
-                dump_json(positions_path, all_positions)
+                dump_json(self.positions_path, self.positions)
 
     def set_user_event_update(self, cb: Callable):
         self._user_event_update = cb
@@ -167,14 +166,14 @@ class Hyperliquid(API, HyperliquidBase):
         sz = self.positions[coin]["sz"]
 
         if side == constants.LONG:
-            oid = self.maker_sell(coin, sz).get("oid", -1)
+            oid = self.maker_sell(coin, sz).get("oid", 0)
         else:
-            oid = self.maker_buy(coin, sz).get("oid", -1)
+            oid = self.maker_buy(coin, sz).get("oid", 0)
         return oid 
         
     def maker_buy(self, coin, sz):
         self.orders[coin] = {
-            "oid": "",
+            "oid": 0,
             "side": constants.LONG,
             "sz": sz
         }
@@ -199,7 +198,7 @@ class Hyperliquid(API, HyperliquidBase):
     
     def maker_sell(self, coin, sz):
         self.orders[coin] = {
-            "oid": "",
+            "oid": 0,
             "side": constants.SHORT,
             "sz": sz
         }
@@ -373,10 +372,10 @@ class Hyperliquid(API, HyperliquidBase):
         }
 
         if side == constants.LONG:
-            uid = self.maker_buy(coin, sz).get("oid", -1)
+            uid = self.maker_buy(coin, sz).get("oid", 0)
             self.repeating_orders[coin]['uid'] = uid 
         else:
-            uid = self.maker_sell(coin, sz).get("oid", -1) 
+            uid = self.maker_sell(coin, sz).get("oid", 0) 
             self.repeating_orders[coin]['uid'] = uid 
         
         time.sleep(8)
@@ -385,10 +384,10 @@ class Hyperliquid(API, HyperliquidBase):
             self.cancel(coin, self.repeating_orders[coin]['uid'])
 
             if side == constants.LONG:
-                uid = self.maker_buy(coin, sz).get("oid", -1)
+                uid = self.maker_buy(coin, sz).get("oid", 0)
                 self.repeating_orders[coin]['uid'] = uid
             else:
-                uid = self.maker_sell(coin, sz).get("oid", -1) 
+                uid = self.maker_sell(coin, sz).get("oid", 0) 
                 self.repeating_orders[coin]['uid'] = uid 
 
             time.sleep(8)
@@ -442,10 +441,7 @@ class Hyperliquid(API, HyperliquidBase):
             if coin not in real_position_coins:
                 self.positions.pop(coin)     
 
-
-        all_positions = load_json_file(positions_path)
-        all_positions[self.address] = self.positions    
-        dump_json(positions_path, all_positions)   
+        dump_json(self.positions_path, self.positions)   
         
             
         

@@ -3,6 +3,7 @@ from platform import system
 import json 
 import traceback
 import logging 
+import os 
 from perp.utils.types import Proxy
 
 logger = logging.getLogger(__name__)
@@ -26,11 +27,17 @@ def get_correct_path(path: str) -> str:
 
 def load_json_file(path: str) -> dict:
     _path = get_correct_path(path)
-    with open(_path, encoding="utf-8") as file:
+    if not os.path.isfile(_path):
+        with open(_path, "w") as file:
+            if _path.endswith(".json"):
+                file.write("{}")
+            pass 
+
+    with open(_path) as file:
         return json.load(file)
     
 def dump_json(file_path: str, data: dict) -> None:
-    with open(get_correct_path(file_path), "w", encoding="utf-8") as file:
+    with open(get_correct_path(file_path), "w") as file:
         json.dump(data, file, indent=4)
 
 def run_with_traceback(func, logger, *args, **kwargs):

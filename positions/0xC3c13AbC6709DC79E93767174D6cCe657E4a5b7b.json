@@ -1,0 +1,14 @@
+{
+    "LDO": {
+        "lifetime": 113,
+        "open_time": 1710692326.207298,
+        "side": "LONG",
+        "sz": 50.1
+    },
+    "APE": {
+        "lifetime": 135,
+        "open_time": 1710692344.703557,
+        "side": "SHORT",
+        "sz": 64.3
+    }
+}

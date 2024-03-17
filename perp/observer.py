@@ -15,7 +15,7 @@ token = "6827720178:AAGyGWS3m0-0VlSujJvqekpUIhWeZtpvuzA"
 
 path_file = f"fills/{datetime.today().strftime('%Y-%m-%d')}.txt"
 
-with open(path_file, 'w') as file:
+with open(path_file, 'a') as file:
     pass 
 
 class Observer:

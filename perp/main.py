@@ -1,3 +1,4 @@
+from copy import deepcopy
 from perp.hyperliquid.main import Hyperliquid
 from perp.observer import Observer
 from perp.utils.funcs import load_json_file, run_with_traceback
@@ -72,7 +73,8 @@ class Main():
                     if time.time() - position["open_time"] > position["lifetime"]: 
                         run_with_traceback(self.close_position, logger, pair, coin)
                         time.sleep(randomizer.random_int(config.MIN_SLEEP_TIME, config.MAX_SLEEP_TIME))
-            
+
+                self.remove_positions(pair)
             ix += 1
             time.sleep(60 * 1)
 
@@ -133,21 +135,21 @@ class Main():
         start_time = time.time()
         while True:
             if coin not in p1.orders:
-                p2.cancel(coin, p2.orders.get(coin, {}).get('oid', -1))
+                p2.cancel(coin, p2.orders.get(coin, {}).get('oid', 0))
                 if coin in p2.orders and p1_side == constants.LONG:
                     p2.market_sell(coin, p2.orders[coin]['sz'])
                 elif coin in p2.orders:
                     p2.market_buy(coin, p2.orders[coin]['sz'])
                 break
             elif coin not in p2.orders:
-                p1.cancel(coin, p1.orders.get(coin, {}).get('oid', -1))
+                p1.cancel(coin, p1.orders.get(coin, {}).get('oid', 0))
                 if coin in p1.orders and p1_side == constants.LONG:
                     p1.market_buy(coin, p1.orders[coin]['sz'])
                 elif coin in p1.orders:
                     p1.market_sell(coin, p1.orders[coin]['sz'])
                 break
             elif time.time() - start_time > 20:
-                ts_1 = [threading.Thread(target=p1.cancel, args=(coin, p1.orders.get(coin, {}).get('oid', -1))), threading.Thread(target=p2.cancel, args=(coin, p2.orders.get(coin, {}).get('oid', -1)))]
+                ts_1 = [threading.Thread(target=p1.cancel, args=(coin, p1.orders.get(coin, {}).get('oid', 0))), threading.Thread(target=p2.cancel, args=(coin, p2.orders.get(coin, {}).get('oid', 0)))]
                 for t in ts_1:
                     t.start()
                 for t in ts_1:
@@ -164,7 +166,53 @@ class Main():
 
                 start_time = time.time()
 
+    def remove_positions(self, pair: Tuple[Hyperliquid, Hyperliquid]):
+        p1, p2 = pair 
 
+        p1_pos = deepcopy(p1.positions)
+        p2_pos = deepcopy(p2.positions)
+
+        for coin, position in p1_pos.items():
+            if coin not in p2_pos:
+                logger.info(f"removing {coin} {position['sz']} from {p1.address}")
+                side = position['side']
+
+                if side == constants.LONG:
+                    p1.market_sell(coin, position['sz'])
+                else:
+                    p1.market_buy(coin, position['sz'])
+
+            elif p2_pos[coin]['sz'] < position['sz']:
+                logger.info(f"removing partially {coin} {position['sz']-p2_pos[coin]['sz']} from {p1.address}")
+                side = position['side']
+
+                if side == constants.LONG:
+                    p1.market_sell(coin, position['sz']-p2_pos[coin]['sz'] )
+                else:
+                    p1.market_buy(coin, position['sz']-p2_pos[coin]['sz'] )
+        
+        for coin, position in p2_pos.items():
+            side = position['side']
+
+            if coin not in p1_pos:
+                logger.info(f"removing {coin} {position['sz']} from {p2.address}")
+                if side == constants.LONG:
+                    p2.market_sell(coin, position['sz'])
+                else:
+                    p2.maker_buy(coin, position['sz'])
+            elif p1_pos[coin]['sz'] < position['sz']:
+                logger.info(f"removing partially {coin} {position['sz']-p1_pos[coin]['sz']} from {p2.address}")
+                if side == constants.LONG:
+                    p2.market_sell(coin, position['sz']-p1_pos[coin]['sz'])
+                else:
+                    p2.maker_buy(coin, position['sz']-p1_pos[coin]['sz'])
+
+
+            
+            
+
+
+                
 
     def close_position(self, pair: Tuple[Hyperliquid, Hyperliquid], coin: str):
         p1, p2 = pair 
@@ -186,7 +234,7 @@ class Main():
         start_time = time.time()
         while coin in p1.orders or coin in p2.orders:
             if coin not in p1.orders:
-                p2.cancel(coin, p2.orders.get(coin, {}).get('oid', -1))
+                p2.cancel(coin, p2.orders.get(coin, {}).get('oid', 0))
                 if coin in p2.orders and p1_side == constants.LONG:
                     p2.market_buy(coin, p2.orders[coin]['sz'])
                 elif coin in p2.orders:
@@ -194,7 +242,7 @@ class Main():
                 break
             
             elif coin not in p2.orders:
-                p1.cancel(coin, p1.orders.get(coin, {}).get('oid', -1))
+                p1.cancel(coin, p1.orders.get(coin, {}).get('oid', 0))
                 if coin in p1.orders and p1_side == constants.LONG:
                     p1.market_sell(coin, p1.orders[coin]['sz'])
                 elif coin in p1.orders:
@@ -202,7 +250,7 @@ class Main():
                 break
 
             elif time.time() - start_time > 20:
-                ts_1 = [threading.Thread(target=p1.cancel, args=(coin, p1.orders.get(coin, {}).get('oid', -1))), threading.Thread(target=p2.cancel, args=(coin, p2.orders.get(coin, {}).get('oid', -1)))]
+                ts_1 = [threading.Thread(target=p1.cancel, args=(coin, p1.orders.get(coin, {}).get('oid', 0))), threading.Thread(target=p2.cancel, args=(coin, p2.orders.get(coin, {}).get('oid', 0)))]
                 for t in ts_1:
                     t.start()
                 for t in ts_1:
