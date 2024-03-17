@@ -6,7 +6,7 @@ from perp.hyperliquid.hyperliquid_api import API
 from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderWire, CancelRequest, get_timestamp_ms, order_request_to_order_wire, order_wires_to_order_action, sign_l1_action
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
 from perp.hyperliquid.ws import WebsocketManager
-from perp.utils.types import Proxies, Balance, UnfilledOrder, RepeatingOrder, Position, WalletConfig, MakerOrder, ClosedPosition
+from perp.utils.types import Proxies, Balance, RepeatingOrder, Position, WalletConfig, MakerOrder, ClosedPosition, Order
 from perp.utils.funcs import handle_order_results
 from perp.observer import Observer
 
@@ -35,8 +35,8 @@ class Hyperliquid(API, HyperliquidBase):
         self.size_decimals = config.SIZE_DECIMALS
         self.price_decimals = config.PRICE_DECIMALS
 
-        self.unfilled_orders: Dict[str, UnfilledOrder] = {}
         self.maker_orders: Dict[str, MakerOrder] = {}
+        self.orders: Dict[str, Order] = {}
         self.repeating_orders: Dict[str, RepeatingOrder] = {} # EXPERIMENTS
         self.positions: Dict[str, Position] = {}
 
@@ -66,60 +66,36 @@ class Hyperliquid(API, HyperliquidBase):
         for fill in fills:
             coin = fill['coin']
             side = constants.LONG if fill['side'] == 'B' else constants.SHORT 
+            sz = float(fill['sz'])
             observer.save_fill(fill, wallet=self.address)
 
             if coin in deepcopy(self.close):
-                sz = float(fill['sz'])
                 self.close[coin] -= sz 
 
                 if self.close[coin] == 0.0:
                     self.close.pop(coin)
+            
+            if coin in deepcopy(self.orders):
+                self.orders[coin]['sz'] -= sz 
 
+                if not self.orders[coin]['sz']:
+                    self.orders.pop(coin) 
+            
             if coin in deepcopy(self.positions):
-                if self.positions[coin]["side"] != side:
-                    new_sz = self.positions[coin]['sz'] - float(fill['sz'])
-                    if new_sz == 0:
-                        side_m = 1 if side == constants.LONG else -1
-                        self.closed_positions[coin] = {
-                        "fee": float(self.positions[coin]["fee"]) + float(fill["fee"]),
-                        "pnl": side_m * (float(fill["px"]) - float(self.positions[coin]["entry_price"])) * float(self.positions[coin]["sz"]),
-                        "side": constants.LONG
-                        }   
-                        self.positions.pop(coin)
-                    else:
-                        self.positions[coin]['sz'] -= float(fill['sz'])
-                else:
-                    self.positions[coin]['entry_price'] += float(fill['px'])
-                    self.positions[coin]['entry_price'] /= 2
+                if side == self.positions[coin]['side']:
                     self.positions[coin]['sz'] += float(fill['sz'])
-                    
-
-                continue 
-
-
-            if coin in deepcopy(self.maker_orders):
-                new_sz = self.maker_orders[coin]['sz'] - float(fill['sz'])
-                if new_sz == 0.0:
-                    opposite_side = 'short' if fill['side'] == 'B' else 'long'
-                    oid = self.maker_orders[coin][opposite_side]
-                    self.cancel(coin, oid)
-
-                    self.maker_orders.pop(coin)
                 else:
-                    self.maker_orders[coin]['sz'] = new_sz
-                    self.maker_orders[coin]['side'] = constants.LONG if fill['side'] == 'B' else constants.SHORT
-                
+                    self.positions[coin]['sz'] -= float(fill['sz'])
 
-            self.positions[coin] = {
-                'entry_price': float(fill['px']),
-                'fee': float(fill['fee']),
-                'lifetime': randomizer.random_int(self.config["min_position_lifetime"]*60, self.config["max_position_lifetime"]*60),
-                 "open_time": time.time(),
-                "side": side,
-                "sz": float(fill["sz"])
-            }
-            # DEBUG
-            # print(self.positions)
+                    if not self.positions[coin]['sz']:
+                        self.positions.pop(coin)
+            else:
+                self.positions[coin] = {
+                    'lifetime': randomizer.random_int(self.config["min_position_lifetime"]*60, self.config["max_position_lifetime"]*60),
+                    "open_time": time.time(),
+                    "side": side,
+                    "sz": float(fill["sz"])
+                }
 
     def set_user_event_update(self, cb: Callable):
         self._user_event_update = cb
@@ -130,60 +106,38 @@ class Hyperliquid(API, HyperliquidBase):
     
     """Market"""
     def market_buy(self, coin, sz, px=None):
-        return self._market_open(coin, True, sz, px)
+        r = self._market_open(coin, True, sz, px)
+        if r['code'] == constants.FILLED:
+            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            return r 
+        elif r["code"] == constants.RESTING:
+            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            self.orders[coin] = {
+                "sz": sz,
+                "side": constants.LONG,
+                "oid": r["oid"]
+            }
+        else:
+            logger.error(f"{coin} {constants.LONG} {self.address[:5]} {sz} {r}")
+            return r 
     
     def market_sell(self, coin, sz, px=None):
-        return self._market_open(coin, False, sz, px)
+        r = self._market_open(coin, False, sz, px)
+        if r['code'] == constants.FILLED:
+            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            return r 
+        elif r["code"] == constants.RESTING:
+            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            self.orders[coin] = {
+                "sz": sz,
+                "side": constants.SHORT,
+                "oid": r["oid"]
+            }
+        else:
+            logger.error(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            return r 
 
     """Maker"""
-    def open_maker_position(self, coin, sz, ):
-        self.maker_orders[coin] = {
-            'sz': sz,
-            'side': ''
-        }
-
-        start_time = None 
-        while coin in self.maker_orders:
-            if not start_time or time.time() - start_time > 20:
-                if start_time:
-                    self.cancel(coin, order_status_long.get("oid", -1))
-                    self.cancel(coin, order_status_short.get("oid", -1))
-
-                if coin not in self.maker_orders:
-                    return 
-                
-                if self.maker_orders[coin]['side'] != constants.SHORT:
-                    order_status_long = self.maker_buy(coin, self.maker_orders[coin]['sz'])
-
-                    while order_status_long.get("code") == constants.ERROR_POST_ORDER:
-                        order_status_long = self.maker_buy(coin, self.maker_orders[coin]['sz'])
-
-                    if order_status_long.get("code") == constants.ERROR_FIELD:
-                        self.maker_orders.pop(coin)
-                        return constants.ERROR_FIELD
-                    
-                    self.maker_orders[coin]['long'] = order_status_long.get("oid", -1)
-
-                if coin in self.maker_orders and self.maker_orders[coin]['side'] != constants.LONG:
-                    order_status_short = self.maker_sell(coin, self.maker_orders[coin]['sz'])
-
-                    while order_status_short.get("code") == constants.ERROR_POST_ORDER and coin in self.maker_orders:
-                        order_status_short = self.maker_sell(coin, self.maker_orders[coin]['sz'])
-
-                    if coin not in self.maker_orders:
-                        self.cancel(coin, order_status_short.get("oid", -1))
-                        return 
-
-                    if order_status_short.get("code") == constants.ERROR_FIELD:
-                        self.cancel(coin, self.maker_orders[coin]['long'])
-                        self.maker_orders.pop(coin)
-                        return constants.ERROR_FIELD
-                    
-                    self.maker_orders[coin]['short'] =order_status_short.get("oid", -1)
-                    start_time = time.time()
-
-                    
-
     def close_market_position(self, coin: str):
         side = self.positions[coin]["side"]
         sz = self.positions[coin]["sz"]
@@ -206,20 +160,54 @@ class Hyperliquid(API, HyperliquidBase):
         return oid 
         
     def maker_buy(self, coin, sz):
+        self.orders[coin] = {
+            "oid": "",
+            "side": constants.LONG,
+            "sz": sz
+        }
+
         prices = self._prices(coin)
         tick = self.price_decimals[coin]
         tick_delta = 1 if coin in config.LOW_LIQUIDITY_COINS else 2
         px = prices[0] - tick_delta * 10 ** (-tick)
         order_result = self._order(coin, True, float(sz), float(px), order_type={"limit": {"tif": "Alo"}}, reduce_only=False)
-        return handle_order_results(order_result, coin, sz)
+        r = handle_order_results(order_result)
 
+        if r['code'] == constants.RESTING or r['code'] == constants.FILLED:
+            logger.info(f"{coin} {constants.LONG} {self.address[:5]} {sz} {r}")
+            logger.info(self.positions)
+            logger.info(self.orders)
+            if coin in self.orders:
+                self.orders[coin]['oid'] = r['oid']
+        else:
+            logger.error(f"{coin} {constants.LONG} {self.address[:5]} {sz} {r}")
+        
+        return r 
+    
     def maker_sell(self, coin, sz):
+        self.orders[coin] = {
+            "oid": "",
+            "side": constants.SHORT,
+            "sz": sz
+        }
         prices = self._prices(coin)
         tick = self.price_decimals[coin]
         tick_delta = 1 if coin in config.LOW_LIQUIDITY_COINS else 2
         px = prices[1] + tick_delta * 10 ** (-tick)
         order_result = self._order(coin, False, float(sz), float(px), order_type={"limit": {"tif": "Alo"}}, reduce_only=False)
-        return handle_order_results(order_result, coin, sz)
+        r = handle_order_results(order_result)
+
+        if r['code'] == constants.RESTING or r['code'] == constants.FILLED:
+            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            logger.info(self.positions)
+            logger.info(self.orders)
+
+            if coin in self.orders:
+                self.orders[coin]['oid'] = r['oid']
+        else:
+            logger.error(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+        
+        return r 
     
     """System"""
     def _prices(self, coin):
@@ -236,7 +224,7 @@ class Hyperliquid(API, HyperliquidBase):
     ) -> Any:
         px = self._slippage_price(coin, is_buy, slippage, px)
         order_result = self._order(coin, is_buy, float(sz), float(px), order_type={"limit": {"tif": "Ioc"}}, reduce_only=False)
-        return handle_order_results(order_result, coin, sz)
+        return handle_order_results(order_result)
     
     def _order(
         self,
@@ -356,9 +344,9 @@ class Hyperliquid(API, HyperliquidBase):
     def get_balance(self) -> Balance:
         user_state = self._get_user_state()
         return {
-            "accountValue": user_state['marginSummary']['accountValue'],
-            'totalMarginUsed': user_state['marginSummary']['totalMarginUsed'],
-            "available": user_state['withdrawable'] 
+            "accountValue": float(user_state['marginSummary']['accountValue']),
+            'totalMarginUsed': float(user_state['marginSummary']['totalMarginUsed']),
+            "available": float(user_state['withdrawable'])
         }
     
     def get_mid_price(self, coin):
@@ -411,7 +399,37 @@ class Hyperliquid(API, HyperliquidBase):
                 logger.info(f"{coin} {sz} {self.market_sell(coin, sz)}")
             else:
                 logger.info(f"{coin} {sz} {self.market_buy(coin, sz)}")
-                
+    def update_positions(self):
+        open_positions = self.get_positions()
+        real_position_coins = []
+        for position in open_positions:
+            position = position.get("position", {})
+
+            coin = position.get('coin', "")
+            sz = abs(float(position.get("szi", 0)))
+            side = constants.LONG if float(position.get("szi", 1)) > 0 else constants.SHORT 
+            
+            real_position_coins.append(coin)
+
+            if coin not in self.positions:
+                self.positions[coin] = {
+                    "entry_price": float(position['entryPx']),
+                    "fee": 0.035 * float(position['entryPx']) * sz,
+                    "lifetime": randomizer.random_int(self.config['min_position_lifetime'], self.config['max_position_lifetime']),
+                    "open_time": time.time(),
+                    "side": side,
+                    "sz": sz 
+                }
+            else:
+                self.positions[coin]["entry_price"] = float(position['entryPx'])
+                self.positions[coin]["sz"] = sz 
+                self.positions[coin]["side"] = side 
+        
+        for coin in deepcopy(self.positions):
+            if coin not in real_position_coins:
+                self.positions.pop(coin)            
+        
+            
         
 
             

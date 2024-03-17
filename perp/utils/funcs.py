@@ -52,8 +52,7 @@ def extract_info_from_proxy_row(proxy_row: str) -> Proxy:
         "password": password
     }
 
-def handle_order_results(order_result, coin, sz):
-    logger.info(f"{coin} {sz} {order_result}")
+def handle_order_results(order_result):
     if order_result["status"] == "ok":
         for status in order_result["response"]["data"]["statuses"]:
             try:
@@ -69,7 +68,7 @@ def handle_order_results(order_result, coin, sz):
                     # logger.error(f"{coin} {sz} got unexpected field {status}")
                     if "Post only order would have immediately matched" in status["error"]:
                         return {"code": constants.ERROR_POST_ORDER}
-                    return {"code": constants.ERROR_FIELD}
+                    return {"code": constants.ERROR_FIELD, **order_result}
     else:
         # logger.error(f'{coin} {sz} got error {order_result["status"]}')
-        return {"code": constants.ERROR}
+        return {"code": constants.ERROR, **order_result}
