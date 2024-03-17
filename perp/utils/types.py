@@ -91,7 +91,10 @@ WalletConfig = TypedDict(
         "max_position_lifetime": int,
         "max_open_positions": int,
         "min_open_positions": int,
-        "position_size": float
+        "position_size_percents": int,
+        "leverage": int,
+        "min_available_balance": float,
+        "load_saved_positions": bool 
     }
 )
 

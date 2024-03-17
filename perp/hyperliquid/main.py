@@ -7,7 +7,7 @@ from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderW
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
 from perp.hyperliquid.ws import WebsocketManager
 from perp.utils.types import Proxies, Balance, RepeatingOrder, Position, WalletConfig, MakerOrder, ClosedPosition, Order
-from perp.utils.funcs import handle_order_results
+from perp.utils.funcs import handle_order_results, load_json_file, dump_json
 from perp.observer import Observer
 
 import perp.randomizer as randomizer
@@ -21,10 +21,11 @@ logger = logging.getLogger(__name__)
 
 observer = Observer()
 
+positions_path = "positions.json"
+
 class Hyperliquid(API, HyperliquidBase):
     def __init__(self, private_key: str, proxies: Proxies, wallet_config: WalletConfig):
         super().__init__(proxies=proxies)
-        print(private_key)
 
         self.wallet = eth_account.Account.from_key(private_key)
         self.address = self.wallet.address
@@ -39,6 +40,9 @@ class Hyperliquid(API, HyperliquidBase):
         self.orders: Dict[str, Order] = {}
         self.repeating_orders: Dict[str, RepeatingOrder] = {} # EXPERIMENTS
         self.positions: Dict[str, Position] = {}
+        if self.config["load_saved_positions"]:
+            all_positions = load_json_file(positions_path)
+            self.positions: Dict[str, Position] = all_positions.get(self.address, {})
 
         self.proxies = proxies
 
@@ -89,6 +93,11 @@ class Hyperliquid(API, HyperliquidBase):
 
                     if not self.positions[coin]['sz']:
                         self.positions.pop(coin)
+
+                    all_positions = load_json_file(positions_path)
+                    all_positions[self.address] = self.positions
+                    dump_json(positions_path, all_positions)
+
             else:
                 self.positions[coin] = {
                     'lifetime': randomizer.random_int(self.config["min_position_lifetime"]*60, self.config["max_position_lifetime"]*60),
@@ -96,6 +105,10 @@ class Hyperliquid(API, HyperliquidBase):
                     "side": side,
                     "sz": float(fill["sz"])
                 }
+
+                all_positions = load_json_file(positions_path)
+                all_positions[self.address] = self.positions
+                dump_json(positions_path, all_positions)
 
     def set_user_event_update(self, cb: Callable):
         self._user_event_update = cb
@@ -427,7 +440,12 @@ class Hyperliquid(API, HyperliquidBase):
         
         for coin in deepcopy(self.positions):
             if coin not in real_position_coins:
-                self.positions.pop(coin)            
+                self.positions.pop(coin)     
+
+
+        all_positions = load_json_file(positions_path)
+        all_positions[self.address] = self.positions    
+        dump_json(positions_path, all_positions)   
         
             
         

@@ -1,0 +1,166 @@
+{
+    "0xC3c13AbC6709DC79E93767174D6cCe657E4a5b7b": {
+        "BNB": {
+            "entry_price": 573.59,
+            "fee": 3.51323875,
+            "lifetime": 414,
+            "open_time": 1710685140.77031,
+            "side": "LONG",
+            "sz": 0.175
+        },
+        "OP": {
+            "entry_price": 3.5684,
+            "fee": 3.5345002000000005,
+            "lifetime": 415,
+            "open_time": 1710685140.770318,
+            "side": "SHORT",
+            "sz": 28.3
+        },
+        "ARB": {
+            "entry_price": 1.7106,
+            "fee": 3.5084406,
+            "lifetime": 494,
+            "open_time": 1710685140.7703218,
+            "side": "SHORT",
+            "sz": 58.6
+        },
+        "DOGE": {
+            "entry_price": 0.14961,
+            "fee": 3.5083545,
+            "lifetime": 498,
+            "open_time": 1710685140.770325,
+            "side": "SHORT",
+            "sz": 670.0
+        },
+        "SUI": {
+            "entry_price": 1.5162,
+            "fee": 3.5183421,
+            "lifetime": 340,
+            "open_time": 1710685140.770327,
+            "side": "SHORT",
+            "sz": 66.3
+        },
+        "CFX": {
+            "entry_price": 0.43988,
+            "fee": 3.5102424,
+            "lifetime": 431,
+            "open_time": 1710685140.7703302,
+            "side": "LONG",
+            "sz": 228.0
+        },
+        "FTM": {
+            "entry_price": 0.85051,
+            "fee": 3.5126063000000003,
+            "lifetime": 379,
+            "open_time": 1710685140.7703319,
+            "side": "SHORT",
+            "sz": 118.0
+        },
+        "MKR": {
+            "entry_price": 3118.8,
+            "fee": 3.5039718,
+            "lifetime": 478,
+            "open_time": 1710685140.770335,
+            "side": "LONG",
+            "sz": 0.0321
+        },
+        "kSHIB": {
+            "entry_price": 0.026474,
+            "fee": 3.5173356400000007,
+            "lifetime": 374,
+            "open_time": 1710685140.770337,
+            "side": "LONG",
+            "sz": 3796.0
+        },
+        "NEO": {
+            "entry_price": 14.98,
+            "fee": 3.5023240000000007,
+            "lifetime": 327,
+            "open_time": 1710685140.770339,
+            "side": "SHORT",
+            "sz": 6.68
+        }
+    },
+    "0x6D12b7169708c010ddD4bb29F32bD6f5D1e42fE2": {
+        "BNB": {
+            "entry_price": 573.51,
+            "fee": 3.51274875,
+            "lifetime": 398,
+            "open_time": 1710685140.7750149,
+            "side": "SHORT",
+            "sz": 0.175
+        },
+        "OP": {
+            "entry_price": 3.5683,
+            "fee": 3.5344011500000003,
+            "lifetime": 329,
+            "open_time": 1710685140.775019,
+            "side": "LONG",
+            "sz": 28.3
+        },
+        "ARB": {
+            "entry_price": 1.7114,
+            "fee": 3.5100814000000007,
+            "lifetime": 343,
+            "open_time": 1710685140.7750201,
+            "side": "LONG",
+            "sz": 58.6
+        },
+        "DOGE": {
+            "entry_price": 0.14968,
+            "fee": 3.5099960000000006,
+            "lifetime": 493,
+            "open_time": 1710685140.775022,
+            "side": "LONG",
+            "sz": 670.0
+        },
+        "SUI": {
+            "entry_price": 1.5174,
+            "fee": 3.5211267000000004,
+            "lifetime": 451,
+            "open_time": 1710685140.7750242,
+            "side": "LONG",
+            "sz": 66.3
+        },
+        "CFX": {
+            "entry_price": 0.44001,
+            "fee": 3.5112798000000005,
+            "lifetime": 458,
+            "open_time": 1710685140.7750258,
+            "side": "SHORT",
+            "sz": 228.0
+        },
+        "FTM": {
+            "entry_price": 0.85096,
+            "fee": 3.5144648000000003,
+            "lifetime": 487,
+            "open_time": 1710685140.775028,
+            "side": "LONG",
+            "sz": 118.0
+        },
+        "MKR": {
+            "entry_price": 3118.6,
+            "fee": 3.5037471,
+            "lifetime": 380,
+            "open_time": 1710685140.77503,
+            "side": "SHORT",
+            "sz": 0.0321
+        },
+        "kSHIB": {
+            "entry_price": 0.026445,
+            "fee": 3.5134827000000004,
+            "lifetime": 429,
+            "open_time": 1710685140.775031,
+            "side": "SHORT",
+            "sz": 3796.0
+        },
+        "NEO": {
+            "entry_price": 14.996,
+            "fee": 3.5060648000000008,
+            "lifetime": 488,
+            "open_time": 1710685140.775033,
+            "side": "LONG",
+            "sz": 6.68
+        }
+    }
+}
