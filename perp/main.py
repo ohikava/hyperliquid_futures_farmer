@@ -114,7 +114,7 @@ class Main():
         if min_avail < p1.config['min_available_balance']:
             self.kill()
 
-        position_size_usd = p1.config['position_size_percents'] / 100 * min_eq * one_position_leverage
+        position_size_usd = min_eq * one_position_leverage
 
         mid_price = p1.get_mid_price(coin)
         position_size = position_size_usd / mid_price

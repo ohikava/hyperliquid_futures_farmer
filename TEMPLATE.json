@@ -20,7 +20,6 @@
         "max_position_lifetime": 500,
         "max_open_positions": 12,
         "min_open_positions": 10,
-        "position_size_percents": 10,
         "leverage": 1,
         "min_available_balance": 5,
         "load_saved_positions": true 
