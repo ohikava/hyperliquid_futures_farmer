@@ -5,6 +5,8 @@ import math
 import perp.constants as constants 
 
 def random_int(min, max):
+    if max - min == 1:
+        return min 
     return random.randrange(min, max)
 
 def random_coins(open_positions, n):
