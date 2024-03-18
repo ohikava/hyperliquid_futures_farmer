@@ -125,3 +125,29 @@ def sign_l1_action(wallet, action, nonce):
 
 def get_timestamp_ms() -> int:
     return int(time.time() * 1000)
+
+def sign_withdraw_from_bridge_action(wallet, message):
+    data = {
+        "domain": {
+            "name": "Exchange",
+            "version": "1",
+            "chainId": 42161,
+            "verifyingContract": "0x0000000000000000000000000000000000000000",
+        },
+        "types": {
+            "WithdrawFromBridge2SignPayload": [
+                {"name": "destination", "type": "string"},
+                {"name": "usd", "type": "string"},
+                {"name": "time", "type": "uint64"},
+            ],
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+        },
+        "primaryType": "WithdrawFromBridge2SignPayload",
+        "message": message,
+    }
+    return sign_inner(wallet, data)

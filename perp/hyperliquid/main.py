@@ -3,7 +3,7 @@ import perp.config as config
 import perp.constants as constants 
 from perp.hyperliquid.hyperliquid_types import Meta, WsMsg
 from perp.hyperliquid.hyperliquid_api import API
-from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderWire, CancelRequest, get_timestamp_ms, order_request_to_order_wire, order_wires_to_order_action, sign_l1_action
+from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderWire, CancelRequest, get_timestamp_ms, order_request_to_order_wire, order_wires_to_order_action, sign_l1_action, sign_withdraw_from_bridge_action
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
 from perp.hyperliquid.ws import WebsocketManager
 from perp.utils.types import Proxies, Balance, RepeatingOrder, Position, WalletConfig, MakerOrder, ClosedPosition, Order
@@ -59,6 +59,7 @@ class Hyperliquid(API, HyperliquidBase):
         self.closed_positions: Dict[str, ClosedPosition] = {}
 
         self.close = {}
+        self.user_state = None 
 
     """Sockets and events"""
     def _reload_socket(self, _ws, *args, **kwargs):
@@ -187,8 +188,6 @@ class Hyperliquid(API, HyperliquidBase):
 
         if r['code'] == constants.RESTING or r['code'] == constants.FILLED:
             logger.info(f"{coin} {constants.LONG} {self.address[:5]} {sz} {r}")
-            logger.info(self.positions)
-            logger.info(self.orders)
             if coin in self.orders:
                 self.orders[coin]['oid'] = r['oid']
         else:
@@ -211,8 +210,6 @@ class Hyperliquid(API, HyperliquidBase):
 
         if r['code'] == constants.RESTING or r['code'] == constants.FILLED:
             logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
-            logger.info(self.positions)
-            logger.info(self.orders)
 
             if coin in self.orders:
                 self.orders[coin]['oid'] = r['oid']
@@ -289,7 +286,7 @@ class Hyperliquid(API, HyperliquidBase):
             return self.post("/exchange", payload)
         except:
             logger.error(traceback.format_exc())
-            logger.info(payload)
+            logger.error(payload)
 
     
     def _bulk_cancel(self, cancel_requests: List[CancelRequest]) -> Any:
@@ -340,9 +337,17 @@ class Hyperliquid(API, HyperliquidBase):
     def get_open_orders(self):
         return self.post("/info", {"type": "openOrders", "user": self.address})
     
+    def load_user_state(self):
+        logger.info(f"{self.address[:5]} LOADED USER STATE")
+        self.user_state = self._get_user_state()
+
     """Wallets and Info"""
     def get_positions(self):
-        user_state = self._get_user_state()
+        if self.user_state:
+            user_state = self.user_state
+        else:
+            user_state = self._get_user_state()
+        # user_state = self._get_user_state()
         return user_state["assetPositions"]
     
     def transfer(self, sz: float, destination: str):
@@ -354,7 +359,10 @@ class Hyperliquid(API, HyperliquidBase):
         return cls(private_key=row, proxies=proxies, **kwargs)
     
     def get_balance(self) -> Balance:
-        user_state = self._get_user_state()
+        if self.user_state:
+            user_state = self.user_state
+        else:
+            user_state = self._get_user_state()
         return {
             "accountValue": float(user_state['marginSummary']['accountValue']),
             'totalMarginUsed': float(user_state['marginSummary']['totalMarginUsed']),
@@ -442,7 +450,26 @@ class Hyperliquid(API, HyperliquidBase):
                 self.positions.pop(coin)     
 
         dump_json(self.positions_path, self.positions)   
-        
+
+    def withdraw_from_bridge(self, usd: float, destination: str) -> Any:
+        timestamp = get_timestamp_ms()
+        payload = {
+            "destination": destination,
+            "usd": str(usd),
+            "time": timestamp,
+        }
+        signature = sign_withdraw_from_bridge_action(self.wallet, payload)
+        res = self._post_action(
+            {
+                "chain": "Arbitrum",
+                "payload": payload,
+                "type": "withdraw2",
+            },
+            signature,
+            timestamp,
+        )
+        logger.info(f"WITHDRAW {self.address} {usd} {res}")
+        return res 
             
         
 

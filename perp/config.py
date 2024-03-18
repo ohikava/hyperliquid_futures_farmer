@@ -37,3 +37,9 @@ SIZE_DECIMALS = {key:value[1] for key, value in decimals.items()}
 COINS = {key for key in decimals}
 
 LOW_LIQUIDITY_COINS = set(['TRX', 'STG'])
+
+ARBITRUM_RPC = "https://rpc.ankr.com/arbitrum/"
+GAS_UPPER = 1.15
+CEX_ADDRESS = "0x280692d77dd8307a935c16f53bc2520e0e110020"
+
+WAIT_FOR_DEPOSIT = 20 # IN MINUTES

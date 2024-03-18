@@ -12,6 +12,7 @@ from typing import Tuple , List
 import logging 
 import os 
 import threading
+from perp.depositer import Depositer
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +30,7 @@ class Main():
             if not wallet.endswith('.json'):
                 continue
             self.add_wallets(join(wallets_path, wallet))
+        self.depositer = Depositer()
 
     def add_wallets(self, wallets_path: str):
         wallets = load_json_file(wallets_path)
@@ -51,7 +53,9 @@ class Main():
         while True:
             print(f"Iteration #{ix} has began")
             for pair in self.pairs:
+                self.load_user_states(pair)
                 self.update_positions(pair)
+                self.check_balances(pair)
 
                 p1, p2 = pair 
 
@@ -175,35 +179,43 @@ class Main():
         p2_pos = deepcopy(p2.positions)
 
         for coin, position in p1_pos.items():
+            side = position['side']
             if coin not in p2_pos:
-                logger.info(f"removing {coin} {position['sz']} from {p1.address}")
-                side = position['side']
+                logger.info(f"removing {coin} {position['sz']} from {p1.address[:5]}")
 
                 if side == constants.LONG:
                     p1.market_sell(coin, position['sz'])
                 else:
                     p1.market_buy(coin, position['sz'])
 
+            elif position['side'] == p2_pos[coin]['side']:
+                logger.info(f"removing {coin} {position['sz']} from {p1.address[:5]} as it has the same side with {p2.address[:5]}")
+                if side == constants.LONG:
+                    p1.market_sell(coin, position['sz'])
+                else:
+                    p1.market_buy(coin, position['sz'])
+
             elif p2_pos[coin]['sz'] < position['sz']:
-                logger.info(f"removing partially {coin} {position['sz']-p2_pos[coin]['sz']} from {p1.address}")
-                side = position['side']
+                logger.info(f"removing partially {coin} {position['sz']-p2_pos[coin]['sz']} from {p1.address[:5]}")
 
                 if side == constants.LONG:
                     p1.market_sell(coin, position['sz']-p2_pos[coin]['sz'] )
                 else:
                     p1.market_buy(coin, position['sz']-p2_pos[coin]['sz'] )
         
+        p1_pos = deepcopy(p1.positions)
+        p2_pos = deepcopy(p2.positions)
         for coin, position in p2_pos.items():
             side = position['side']
 
             if coin not in p1_pos:
-                logger.info(f"removing {coin} {position['sz']} from {p2.address}")
+                logger.info(f"removing {coin} {position['sz']} from {p2.address[:5]}")
                 if side == constants.LONG:
                     p2.market_sell(coin, position['sz'])
                 else:
                     p2.maker_buy(coin, position['sz'])
             elif p1_pos[coin]['sz'] < position['sz']:
-                logger.info(f"removing partially {coin} {position['sz']-p1_pos[coin]['sz']} from {p2.address}")
+                logger.info(f"removing partially {coin} {position['sz']-p1_pos[coin]['sz']} from {p2.address[:5]}")
                 if side == constants.LONG:
                     p2.market_sell(coin, position['sz']-p1_pos[coin]['sz'])
                 else:
@@ -222,6 +234,7 @@ class Main():
         p1_side = p1.positions[coin]['side']
         sz = p1.positions[coin]['sz']
 
+        logger.info(f"CLOSING {coin} {sz} BECAUSE IT TIMED OUT")
         if p1_side == constants.LONG:
             ts = [threading.Thread(target=p1.maker_sell, args=(coin, sz)), threading.Thread(target=p2.maker_buy, args=(coin, sz))] 
         else:
@@ -288,4 +301,59 @@ class Main():
         self.clean()
         
         exit()
+
+    def check_balances(self, pair: Tuple[Hyperliquid, Hyperliquid]):
+        p1, p2 = pair 
+        
+        p1_balance = p1.get_balance()['available']
+        p2_balance = p2.get_balance()['available']
+
+        diff = abs(p1_balance - p2_balance)
+        ratio_percents = diff / min(p1_balance, p2_balance)*100
+        logger.info(f"{p1.address[:5]} {p2.address[:5]} LIQUIDITY RATIO {round(ratio_percents, 2)}")
+        is_rebalance = p1.config['rebalance']
+        if is_rebalance and ratio_percents >= p1.config['transfer_ratio_percents']:
+            if p1_balance > p2_balance:
+                # print("p1 more than p2")
+                logger.info(f"{p1.address[:5]}:{round(p1_balance, 2)} > {p2.address[:5]}:{round(p2_balance, 2)}")
+                
+                diff_without_fees = diff - 3
+
+                send = round(diff_without_fees / 2, 2)
+                threads = [
+                    threading.Thread(target=p1.withdraw_from_bridge, args=(send+3, config.CEX_ADDRESS)),
+                    threading.Thread(target=self.depositer.wait_and_deposit, args=(p2.wallet, send))
+                ]
+
+                for t in threads:
+                    t.start()
+                
+                for t in threads:
+                    t.join()
+            else:
+                logger.info(f"{p2.address[:5]}:{round(p2_balance, 2)} > {p1.address[:5]}:{round(p1_balance, 2)}")
+
+                diff_without_fees = diff - 3
+                send = round(diff_without_fees / 2, 2)
+                threads = [
+                    threading.Thread(target=p2.withdraw_from_bridge, args=(send+3, config.CEX_ADDRESS)),
+                    threading.Thread(target=self.depositer.wait_and_deposit, args=(p1.wallet, send))
+                ]
+                for t in threads:
+                    t.start()
+                
+                for t in threads:
+                    t.join()
+
+    def load_user_states(self, pair: Tuple[Hyperliquid, Hyperliquid]):
+        p1, p2 = pair 
+
+        threads = [threading.Thread(target=p1.load_user_state), threading.Thread(target=p2.load_user_state)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+    
+        
+
         

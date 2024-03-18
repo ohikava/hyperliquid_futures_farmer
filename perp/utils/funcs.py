@@ -1,3 +1,4 @@
+import time
 import perp.constants as constants
 from platform import system
 import json 
@@ -79,3 +80,29 @@ def handle_order_results(order_result):
     else:
         # logger.error(f'{coin} {sz} got error {order_result["status"]}')
         return {"code": constants.ERROR, **order_result}
+
+def retry(
+        infinity: bool = False, max_retries: int = 5,
+        timing: float = 5,
+        custom_message: str = "Random error:",
+        catch_exception: bool = False,
+        info_message: bool = False
+):
+    if infinity: max_retries = 9**1000
+    def retry_decorator(func):
+        def _wrapper(*args, **kwargs):
+            for _ in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as error:
+                    if catch_exception:
+                        logger.error(traceback.format_exc())
+                    
+                    if info_message:
+                        logger.info(f'{custom_message} {error}')
+                    else: logger.error(f'{custom_message} | {error}')
+
+                    time.sleep(timing)
+
+        return _wrapper
+    return retry_decorator

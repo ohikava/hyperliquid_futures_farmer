@@ -22,6 +22,8 @@
         "min_open_positions": 10,
         "leverage": 1,
         "min_available_balance": 5,
-        "load_saved_positions": true 
+        "load_saved_positions": true,
+        "transfer_ratio_percents": 50,
+        "rebalance": true
     }
 }
