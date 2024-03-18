@@ -60,11 +60,13 @@ class Main():
                 n_new = max(0, n_new)
 
                 coins = randomizer.random_coins(open_positions, n_new)
-                sides = randomizer.random_sides(coins)
+                current_sides = [p1.positions[i]['side'] for i in open_positions]
+                sides = randomizer.random_sides(current_sides, len(coins))
+                sides = {coin: side for coin, side in zip(coins, sides)}
 
                 n = len(open_positions) + len(coins)
-                for coin in sides:
-                    run_with_traceback(self.open_position, logger, pair, coin, sides[coin], n)
+                for coin, side in sides.items():
+                    run_with_traceback(self.open_position, logger, pair, coin, side, n)
                     time.sleep(randomizer.random_int(config.MIN_SLEEP_TIME, config.MAX_SLEEP_TIME))
 
                 for coin in open_positions:

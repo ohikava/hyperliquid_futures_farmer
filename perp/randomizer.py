@@ -12,20 +12,23 @@ def random_int(min, max):
 def random_coins(open_positions, n):
     return random.sample([coin for coin in config.COINS if coin not in open_positions], n)
 
-def random_sides(coins):
-    if not len(coins):
-        return {}
-    
-    coins = copy(coins)
-    random.shuffle(coins)
-    sep = math.ceil(len(coins) / 2)
-    first_half = [constants.LONG] * sep
-    second_half = [constants.SHORT] * (len(coins) - sep)
 
-    r = first_half + second_half
-    r = [(i, k) for i, k in zip(coins, r)]
-    random.shuffle(r)
-    return dict(r)
+def random_sides(current_sides, n):
+    count_a = current_sides.count(constants.LONG)
+    count_b = current_sides.count(constants.SHORT)
+    
+    res = []
+    i = 0
+    while i < n:
+        if count_a > count_b:
+            res += [constants.SHORT]
+            count_b += 1 
+        else:
+            res += [constants.LONG]
+            count_a += 1
+        i += 1
+    random.shuffle(res)
+    return res 
 
 
 
