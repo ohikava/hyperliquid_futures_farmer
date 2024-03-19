@@ -151,3 +151,31 @@ def sign_withdraw_from_bridge_action(wallet, message):
         "message": message,
     }
     return sign_inner(wallet, data)
+
+
+
+def sign_usd_transfer_action(wallet, message):
+    data = {
+        "domain": {
+            "name": "Exchange",
+            "version": "1",
+            "chainId": 42161,
+            "verifyingContract": "0x0000000000000000000000000000000000000000",
+        },
+        "types": {
+            "UsdTransferSignPayload": [
+                {"name": "destination", "type": "string"},
+                {"name": "amount", "type": "string"},
+                {"name": "time", "type": "uint64"},
+            ],
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+        },
+        "primaryType": "UsdTransferSignPayload",
+        "message": message,
+    }
+    return sign_inner(wallet, data)

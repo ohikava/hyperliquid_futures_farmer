@@ -314,36 +314,24 @@ class Main():
         is_rebalance = p1.config['rebalance']
         if is_rebalance and ratio_percents >= p1.config['transfer_ratio_percents']:
             if p1_balance > p2_balance:
-                # print("p1 more than p2")
                 logger.info(f"{p1.address[:5]}:{round(p1_balance, 2)} > {p2.address[:5]}:{round(p2_balance, 2)}")
-                
-                diff_without_fees = diff - 3
+                send = round(diff / 2, 2)
 
-                send = round(diff_without_fees / 2, 2)
-                threads = [
-                    threading.Thread(target=p1.withdraw_from_bridge, args=(send+3, config.CEX_ADDRESS)),
-                    threading.Thread(target=self.depositer.wait_and_deposit, args=(p2.wallet, send))
-                ]
+                r = p1.usd_transfer(send, p2.address)
 
-                for t in threads:
-                    t.start()
-                
-                for t in threads:
-                    t.join()
+                if r.get('status') == 'ok':
+                    logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
+                else:
+                    logger.error(f"{p1.address[:5]} {send} {r}")
             else:
                 logger.info(f"{p2.address[:5]}:{round(p2_balance, 2)} > {p1.address[:5]}:{round(p1_balance, 2)}")
 
-                diff_without_fees = diff - 3
-                send = round(diff_without_fees / 2, 2)
-                threads = [
-                    threading.Thread(target=p2.withdraw_from_bridge, args=(send+3, config.CEX_ADDRESS)),
-                    threading.Thread(target=self.depositer.wait_and_deposit, args=(p1.wallet, send))
-                ]
-                for t in threads:
-                    t.start()
-                
-                for t in threads:
-                    t.join()
+                send = round(diff / 2, 2)
+                r = p2.usd_transfer(send, p1.address)
+                if r.get('status') == 'ok':
+                    logger.info(f"successfully transfered {send} from {p2.address[:5]} to {p1.address[:5]}")
+                else:
+                    logger.error(f"{p2.address[:5]} {send} {r}")
 
     def load_user_states(self, pair: Tuple[Hyperliquid, Hyperliquid]):
         p1, p2 = pair 

@@ -3,7 +3,7 @@ import perp.config as config
 import perp.constants as constants 
 from perp.hyperliquid.hyperliquid_types import Meta, WsMsg
 from perp.hyperliquid.hyperliquid_api import API
-from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderWire, CancelRequest, get_timestamp_ms, order_request_to_order_wire, order_wires_to_order_action, sign_l1_action, sign_withdraw_from_bridge_action
+from perp.hyperliquid.hyperliquid_signing import OrderType, OrderRequest, OrderWire, CancelRequest, get_timestamp_ms, order_request_to_order_wire, order_wires_to_order_action, sign_l1_action, sign_withdraw_from_bridge_action, sign_usd_transfer_action
 from perp.hyperliquid.hyperliquid_base import HyperliquidBase
 from perp.hyperliquid.ws import WebsocketManager
 from perp.utils.types import Proxies, Balance, RepeatingOrder, Position, WalletConfig, MakerOrder, ClosedPosition, Order
@@ -470,6 +470,24 @@ class Hyperliquid(API, HyperliquidBase):
         )
         logger.info(f"WITHDRAW {self.address} {usd} {res}")
         return res 
+    
+    def usd_transfer(self, amount: float, destination: str) -> Any:
+        timestamp = get_timestamp_ms()
+        payload = {
+            "destination": destination,
+            "amount": str(amount),
+            "time": timestamp,
+        }
+        signature = sign_usd_transfer_action(self.wallet, payload)
+        return self._post_action(
+            {
+                "chain": "Arbitrum",
+                "payload": payload,
+                "type": "usdTransfer",
+            },
+            signature,
+            timestamp,
+        )
             
         
 
