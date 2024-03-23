@@ -28,14 +28,6 @@ class Observer:
         }
 
         requests.post(uri, json=body)
-
-    def position_closed(self, token, p1_pnl, p2_pnl, p1_fee, p2_fee, p1_side):
-        logger_msg = f"{token} PNL: {p1_pnl + p2_pnl}. Fees: {p1_fee+p2_fee}"
-        logger.info(logger_msg)
-
-        tg_msg = f"{token} {p1_side}\n\nperp1 pnl: {p1_pnl}\nfee: {p1_fee}\n\nperp2 pnl: {p2_pnl}\nfee{p2_fee}\n\nTotal: {p1_pnl+p2_pnl-p1_fee-p2_fee}"
-
-        self.send_sync_message(tg_msg)
         
     def save_fill(self, fill: dict, wallet: str):
         sz = float(fill['sz'])
@@ -55,5 +47,9 @@ class Observer:
         }
         with open(path_file, 'a') as file:
             file.write(f"{json.dumps(res)}\n")
+    def observer_stats(self, w1_address, w2_address, p1, p2):
+        tg_msg = f"{w1_address[:5]}: {round(p1, 3)}\n{w2_address[:5]}: {round(p2, 3)}\nTOTAL: {round(p1 + p2, 3)}"
+
+        self.send_sync_message(tg_msg)
 
         

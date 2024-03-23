@@ -13,6 +13,7 @@ import logging
 import os 
 import threading
 from perp.depositer import Depositer
+from perp.stats import get_profit
 logger = logging.getLogger(__name__)
 
 
@@ -31,7 +32,23 @@ class Main():
                 continue
             self.add_wallets(join(wallets_path, wallet))
         self.depositer = Depositer()
+        self.last_notification_time = time.time()
+        try:
+            self.observer.observer_stats(*get_profit())
+        except:
+            pass 
+        threading.Thread(target=self.observe).start()
 
+    def observe(self):
+        while True:
+            if time.time() - self.last_notification_time > config.NOTIFY_INTERVAL * 60:
+                self.last_notification_time = time.time()
+                try:
+                    self.observer.observer_stats(*get_profit())
+                except:
+                    pass 
+        
+        
     def add_wallets(self, wallets_path: str):
         wallets = load_json_file(wallets_path)
         perp1 = wallets["perp1"]
@@ -199,9 +216,15 @@ class Main():
                 logger.info(f"removing partially {coin} {position['sz']-p2_pos[coin]['sz']} from {p1.address[:5]}")
 
                 if side == constants.LONG:
-                    p1.market_sell(coin, position['sz']-p2_pos[coin]['sz'] )
+                    r = p1.market_sell(coin, position['sz']-p2_pos[coin]['sz'] )
                 else:
-                    p1.market_buy(coin, position['sz']-p2_pos[coin]['sz'] )
+                    r = p1.market_buy(coin, position['sz']-p2_pos[coin]['sz'] )
+                if r['code'] == constants.ERROR_FIELD:
+                    if side == constants.LONG:
+                        p1.market_sell(coin, position['sz'])
+                    else:
+                        p1.market_buy(coin, position['sz'])
+
         
         p1_pos = deepcopy(p1.positions)
         p2_pos = deepcopy(p2.positions)
@@ -213,13 +236,19 @@ class Main():
                 if side == constants.LONG:
                     p2.market_sell(coin, position['sz'])
                 else:
-                    p2.maker_buy(coin, position['sz'])
+                    p2.market_buy(coin, position['sz'])
             elif p1_pos[coin]['sz'] < position['sz']:
                 logger.info(f"removing partially {coin} {position['sz']-p1_pos[coin]['sz']} from {p2.address[:5]}")
                 if side == constants.LONG:
-                    p2.market_sell(coin, position['sz']-p1_pos[coin]['sz'])
+                    r = p2.market_sell(coin, position['sz']-p1_pos[coin]['sz'])
                 else:
-                    p2.maker_buy(coin, position['sz']-p1_pos[coin]['sz'])
+                    r = p2.market_buy(coin, position['sz']-p1_pos[coin]['sz'])
+
+                if r['code'] == constants.ERROR_FIELD:
+                    if side == constants.LONG:
+                        p2.market_sell(coin, position['sz'])
+                    else:
+                        p2.market_buy(coin, position['sz'])
 
 
             

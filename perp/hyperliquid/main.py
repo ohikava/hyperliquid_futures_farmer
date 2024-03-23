@@ -287,6 +287,7 @@ class Hyperliquid(API, HyperliquidBase):
         except:
             logger.error(traceback.format_exc())
             logger.error(payload)
+            return {"code": constants.ERROR_POST_ORDER, "status": "error"}
 
     
     def _bulk_cancel(self, cancel_requests: List[CancelRequest]) -> Any:
