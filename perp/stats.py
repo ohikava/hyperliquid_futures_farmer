@@ -5,9 +5,7 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
-def get_profit():
-    filename = f"fills/{datetime.today().strftime('%Y-%m-%d')}.txt"
-
+def get_profit(filename = f"fills/{datetime.today().strftime('%Y-%m-%d')}.txt"):
     with open(filename) as file:
         data = file.readlines()
     data_jsoned = [json.loads(i) for i in data]

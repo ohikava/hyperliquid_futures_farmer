@@ -9,7 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Depositer:
+class Contracts:
     def __init__(self):
         self.w3 = Web3(Web3.HTTPProvider(config.ARBITRUM_RPC))
 
@@ -17,7 +17,10 @@ class Depositer:
 
         self.usdc_contract = self.w3.eth.contract(address=Web3.to_checksum_address(constants.USDC_CONTRACT_ADDRESS), abi=constants.USDC_ABI)
 
-    def wait_and_deposit(self, sender, amount):
+    def deposit(self, sender, amount):
+        return self.send_usdc(sender, amount, constants.HYPERLIQUID_BRIDGE_ADDRESS)
+
+    def send_usdc(self, sender, amount, recipient):
         amount_wei = int(amount * 10**constants.USDC_DECIMALS )
         user_balance = self.usdc_contract.functions.balanceOf(sender.address).call()
         
@@ -29,11 +32,12 @@ class Depositer:
             
             time.sleep(30)
             user_balance = self.usdc_contract.functions.balanceOf(sender.address).call()
-
-        is_successful = self.deposit(sender, amount_wei)
+        
+        is_successful = self._transfer(sender, amount_wei, recipient)
         return is_successful
+        
 
-    def deposit(self, sender, amount_wei):
+    def _transfer(self, sender, amount_wei, destination):
         dict_transaction = {
             "from": Web3.to_checksum_address(sender.address),
             "chainId": self.w3.eth.chain_id,
@@ -41,12 +45,13 @@ class Depositer:
             "gasPrice": self.w3.eth.gas_price
         }
         tx = self.usdc_contract.functions.transfer(
-            constants.HYPERLIQUID_BRIDGE_ADDRESS, amount_wei
+            destination, amount_wei
         ).build_transaction(dict_transaction)
 
         tx_token, is_successful = self.send_transaction(tx, sender)
 
         return is_successful
+
 
 
     

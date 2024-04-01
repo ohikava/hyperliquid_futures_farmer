@@ -24,6 +24,7 @@
         "min_available_balance": 5,
         "load_saved_positions": true,
         "transfer_ratio_percents": 50,
-        "rebalance": true
+        "rebalance": true,
+        "transfer_type": "arbitrum"
     }
 }

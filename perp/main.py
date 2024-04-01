@@ -12,7 +12,7 @@ from typing import Tuple , List
 import logging 
 import os 
 import threading
-from perp.depositer import Depositer
+from perp.contracts import Contracts
 from perp.stats import get_profit
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class Main():
             if not wallet.endswith('.json'):
                 continue
             self.add_wallets(join(wallets_path, wallet))
-        self.depositer = Depositer()
+        self.contracts = Contracts()
         self.last_notification_time = time.time()
         try:
             self.observer.observer_stats(*get_profit())
@@ -345,22 +345,50 @@ class Main():
             if p1_balance > p2_balance:
                 logger.info(f"{p1.address[:5]}:{round(p1_balance, 2)} > {p2.address[:5]}:{round(p2_balance, 2)}")
                 send = round(diff / 2, 2)
+                
+                if p1.config['transfer_type'] == "hyperliquid":
+                    r = p1.usd_transfer(send, p2.address)
 
-                r = p1.usd_transfer(send, p2.address)
-
-                if r.get('status') == 'ok':
-                    logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
+                    if r.get('status') == 'ok':
+                        logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
+                    else:
+                        logger.error(f"{p1.address[:5]} {send} {r}")
                 else:
-                    logger.error(f"{p1.address[:5]} {send} {r}")
+                    logging.info(f"started withdrawing from f{p1.address[:5]}")
+                    p1.withdraw_from_bridge(send, p1.address)
+                    logging.info(f"tried to send {send} from f{p1.address[:5]} to {p2.address[:5]}")
+                    self.contracts.send_usdc(p1.wallet, send, p2.address)
+                    logging.info(f"tried to deposit {send} from f{p2.address}")
+                    r = self.contracts.deposit(p2.wallet, send)
+
+                    if r:
+                        logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
+                    else:
+                        logger.error(f"{p1.address[:5]} {send} {r}")
             else:
                 logger.info(f"{p2.address[:5]}:{round(p2_balance, 2)} > {p1.address[:5]}:{round(p1_balance, 2)}")
 
                 send = round(diff / 2, 2)
-                r = p2.usd_transfer(send, p1.address)
-                if r.get('status') == 'ok':
-                    logger.info(f"successfully transfered {send} from {p2.address[:5]} to {p1.address[:5]}")
+                if p1.config['transfer_type'] == 'hyperliquid':
+                    r = p2.usd_transfer(send, p1.address)
+
+                    if r.get('status') == 'ok':
+                        logger.info(f"successfully transfered {send} from {p2.address[:5]} to {p1.address[:5]}")
+                    else:
+                        logger.error(f"{p2.address[:5]} {send} {r}")
                 else:
-                    logger.error(f"{p2.address[:5]} {send} {r}")
+                    logging.info(f"started withdrawing from f{p2.address[:5]}")
+                    p2.withdraw_from_bridge(send, p2.address)
+                    logging.info(f"tried to send {send} from f{p2.address[:5]} to {p1.address[:5]}")
+                    self.contracts.send_usdc(p2.wallet, send, p1.address)
+                    logging.info(f"tried to deposit {send} from f{p1.address}")
+                    r = self.contracts.deposit(p1.wallet, send)
+
+                    if r:
+                        logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
+                    else:
+                        logger.error(f"{p1.address[:5]} {send} {r}")
+                    
 
     def load_user_states(self, pair: Tuple[Hyperliquid, Hyperliquid]):
         p1, p2 = pair 
@@ -370,7 +398,3 @@ class Main():
             t.start()
         for t in threads:
             t.join()
-    
-        
-
-        
