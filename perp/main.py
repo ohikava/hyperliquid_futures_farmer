@@ -355,7 +355,7 @@ class Main():
                         logger.error(f"{p1.address[:5]} {send} {r}")
                 else:
                     logging.info(f"started withdrawing from f{p1.address[:5]}")
-                    p1.withdraw_from_bridge(send, p1.address)
+                    p1.withdraw_from_bridge(send+1, p1.address)
                     logging.info(f"tried to send {send} from f{p1.address[:5]} to {p2.address[:5]}")
                     self.contracts.send_usdc(p1.wallet, send, p2.address)
                     logging.info(f"tried to deposit {send} from f{p2.address}")
@@ -378,7 +378,7 @@ class Main():
                         logger.error(f"{p2.address[:5]} {send} {r}")
                 else:
                     logging.info(f"started withdrawing from f{p2.address[:5]}")
-                    p2.withdraw_from_bridge(send, p2.address)
+                    p2.withdraw_from_bridge(send+1, p2.address)
                     logging.info(f"tried to send {send} from f{p2.address[:5]} to {p1.address[:5]}")
                     self.contracts.send_usdc(p2.wallet, send, p1.address)
                     logging.info(f"tried to deposit {send} from f{p1.address}")

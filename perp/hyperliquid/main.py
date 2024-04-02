@@ -191,7 +191,7 @@ class Hyperliquid(API, HyperliquidBase):
             if coin in self.orders:
                 self.orders[coin]['oid'] = r['oid']
         else:
-            if "does not exist" in r['response']:
+            if "does not exist" in r.get('response', ''):
                 print(self.address)
                 
             logger.error(f"{coin} {constants.LONG} {self.address[:5]} {sz} {r}")
@@ -217,7 +217,7 @@ class Hyperliquid(API, HyperliquidBase):
             if coin in self.orders:
                 self.orders[coin]['oid'] = r['oid']
         else:
-            if "does not exist" in r['response']:
+            if "does not exist" in r.get('response', ''):
                 print(self.address)
             logger.error(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
         
