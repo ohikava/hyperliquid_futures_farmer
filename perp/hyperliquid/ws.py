@@ -67,7 +67,7 @@ class WebsocketManager(threading.Thread):
 
     def send_ping(self):
         while True:
-            time.sleep(50)
+            time.sleep(30)
             logging.debug("Websocket sending ping")
             self.ws.send(json.dumps({"method": "ping"}))
 
