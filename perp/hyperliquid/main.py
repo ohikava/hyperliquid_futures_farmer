@@ -368,8 +368,9 @@ class Hyperliquid(API, HyperliquidBase):
             user_state = self._get_user_state()
         return {
             "accountValue": float(user_state['marginSummary']['accountValue']),
-            'totalMarginUsed': float(user_state['marginSummary']['totalMarginUsed']),
-            "available": float(user_state['withdrawable'])
+            'totalMarginUsed': float(user_state['crossMaintenanceMarginUsed']),
+            "available": float(user_state['withdrawable']),
+            "leverage": float(user_state['marginSummary']["totalNtlPos"]) / float(user_state['marginSummary']['accountValue'])
         }
     
     def get_mid_price(self, coin):
@@ -491,6 +492,38 @@ class Hyperliquid(API, HyperliquidBase):
             signature,
             timestamp,
         )
+    
+    def get_portfolio(self):
+        self.load_user_state()
+        orders = self.get_open_orders()
+        positions = self.get_positions()
+        balance = self.get_balance()
+        
+        res = {
+            "orders": [{"coin": i["coin"], "px": i["limitPx"], "sz": i["sz"], "side": constants.LONG if i["side"] == "B" else constants.SHORT, "ts": i['timestamp']} for i in orders],
+            "positions": [
+                {
+                    "coin": i["position"]["coin"],
+                    "px": i["position"]["entryPx"],
+                    "leverage": i["position"]["leverage"]["value"],
+                    "liquidation-px": i["position"]["liquidationPx"],
+                    "margin-used": i["position"]["marginUsed"],
+                    "sz": abs(float(i["position"]["szi"])),
+                    "pnl": i["position"]["unrealizedPnl"],
+                    "side": constants.LONG if float(i["position"]["szi"]) > 0 else constants.SHORT
+
+                } for i in positions
+            ],
+            "account-value": balance["accountValue"],
+            "margin-used": balance["totalMarginUsed"],
+            "available": balance["available"],
+            "leverage": balance["leverage"]
+        }
+        pnl = sum([float(i["pnl"]) for i in res["positions"]])
+        res["unrealized_pnl"] = pnl 
+        res["margin-ratio"] = float(res["margin-used"]) / float(res["account-value"]) * 100
+        return res
+
             
         
 

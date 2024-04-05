@@ -6,6 +6,7 @@ import traceback
 import logging 
 import os 
 from perp.utils.types import Proxy
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -106,3 +107,24 @@ def retry(
 
         return _wrapper
     return retry_decorator
+
+def format_portfolio(portfolio):
+    orders = portfolio["orders"]
+    positions = portfolio["positions"]
+
+    res = "orders: \n"
+    for order in orders:
+        res += f'{order["coin"]} {order["side"]} sz: {order["sz"]} px: {order["px"]}\n'
+    res += "\npositions: \n"
+
+    for position in positions:
+        res += f'{position["coin"]} {position["side"]} {position["leverage"]}x sz: {position["sz"]} px: {position["px"]}, liq. price: {position["liquidation-px"]} margin-used: {position["margin-used"]} pnl: {position["pnl"]}\n'
+    res += "\n"
+
+    res += f'account-value: {portfolio["account-value"]}\n'
+    res += f'leverage: {round(float(portfolio["leverage"]), 3)}x\n'
+    res += f'pnl: {round(float(portfolio["unrealized_pnl"]))}\n'
+    res += f'margin-ratio: {round(float(portfolio["margin-ratio"]), 3)}'
+    return res 
+
+    
