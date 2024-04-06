@@ -87,14 +87,10 @@ Position = TypedDict(
 WalletConfig = TypedDict(
     "WalletDict",
     {
-        "min_position_lifetime": int,
-        "max_position_lifetime": int,
-        "max_open_positions": int,
-        "min_open_positions": int,
-        "position_size_percents": int,
+        "positions_lifetime": int,
+        "n_positions": int,
         "leverage": int,
         "min_available_balance": float,
-        "load_saved_positions": bool,
         "transfer_ratio_percents": float,
         "rebalance": bool,
         "transfer_type": str 

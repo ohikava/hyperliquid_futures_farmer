@@ -22,8 +22,6 @@ logger = logging.getLogger(__name__)
 
 observer = Observer()
 
-positions_path = "positions"
-
 class Hyperliquid(API, HyperliquidBase):
     def __init__(self, private_key: str, proxies: Proxies, wallet_config: WalletConfig):
         super().__init__(proxies=proxies)
@@ -37,17 +35,9 @@ class Hyperliquid(API, HyperliquidBase):
         self.size_decimals = config.SIZE_DECIMALS
         self.price_decimals = config.PRICE_DECIMALS
 
-        self.maker_orders: Dict[str, MakerOrder] = {}
         self.orders: Dict[str, Order] = {}
-        self.repeating_orders: Dict[str, RepeatingOrder] = {} # EXPERIMENTS
         self.positions: Dict[str, Position] = {}
-
-        self.positions_path = os.path.join(positions_path, f"{self.address}.json")
-        if self.config["load_saved_positions"]:
-
-            all_positions = load_json_file(self.positions_path)
-            self.positions: Dict[str, Position] = all_positions if all_positions else {}
-
+        
         self.proxies = proxies
 
         self.ws = WebsocketManager(self.base_url, proxies.get('http'), self._reload_socket)
@@ -98,18 +88,11 @@ class Hyperliquid(API, HyperliquidBase):
 
                     if not self.positions[coin]['sz']:
                         self.positions.pop(coin)
-
-                dump_json(self.positions_path, self.positions)
-
             else:
                 self.positions[coin] = {
-                    'lifetime': randomizer.random_int(self.config["min_position_lifetime"]*60, self.config["max_position_lifetime"]*60),
-                    "open_time": time.time(),
                     "side": side,
                     "sz": float(fill["sz"])
                 }
-                dump_json(self.positions_path, self.positions)
-
     def set_user_event_update(self, cb: Callable):
         self._user_event_update = cb
 
@@ -120,11 +103,11 @@ class Hyperliquid(API, HyperliquidBase):
     """Market"""
     def market_buy(self, coin, sz, px=None):
         r = self._market_open(coin, True, sz, px)
-        if r['code'] == constants.FILLED:
-            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+        if r['code'] == constants.FILLED and float(r['totalSz']) == sz:
+            logger.info(f"{self.address[:5]} {coin} {constants.LONG} {r}")
             return r 
-        elif r["code"] == constants.RESTING:
-            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+        elif r["code"] == constants.RESTING or (r['code'] == constants.FILLED and float(r['totalSz']) != sz):
+            logger.info(f"{self.address[:5]} {coin} {constants.LONG} {r}")
             self.orders[coin] = {
                 "sz": sz,
                 "side": constants.LONG,
@@ -136,11 +119,11 @@ class Hyperliquid(API, HyperliquidBase):
     
     def market_sell(self, coin, sz, px=None):
         r = self._market_open(coin, False, sz, px)
-        if r['code'] == constants.FILLED:
-            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+        if r['code'] == constants.FILLED and float(r['totalSz']) == sz:
+            logger.info(f"{self.address[:5]} {coin} {constants.SHORT} {r}")
             return r 
-        elif r["code"] == constants.RESTING:
-            logger.info(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+        elif r["code"] == constants.RESTING or (r['code'] == constants.FILLED and float(r['totalSz']) != sz):
+            logger.info(f"{self.address[:5]} {coin} {constants.SHORT} {r}")
             self.orders[coin] = {
                 "sz": sz,
                 "side": constants.SHORT,
@@ -437,15 +420,10 @@ class Hyperliquid(API, HyperliquidBase):
 
             if coin not in self.positions:
                 self.positions[coin] = {
-                    "entry_price": float(position['entryPx']),
-                    "fee": 0.035 * float(position['entryPx']) * sz,
-                    "lifetime": randomizer.random_int(self.config['min_position_lifetime'], self.config['max_position_lifetime']),
-                    "open_time": time.time(),
                     "side": side,
                     "sz": sz 
                 }
             else:
-                self.positions[coin]["entry_price"] = float(position['entryPx'])
                 self.positions[coin]["sz"] = sz 
                 self.positions[coin]["side"] = side 
         
@@ -453,7 +431,6 @@ class Hyperliquid(API, HyperliquidBase):
             if coin not in real_position_coins:
                 self.positions.pop(coin)     
 
-        dump_json(self.positions_path, self.positions)   
 
     def withdraw_from_bridge(self, usd: float, destination: str) -> Any:
         timestamp = get_timestamp_ms()

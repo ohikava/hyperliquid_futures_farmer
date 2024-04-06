@@ -16,14 +16,11 @@
         }
     },
     "config": {
-        "min_position_lifetime": 300,
-        "max_position_lifetime": 500,
-        "max_open_positions": 12,
-        "min_open_positions": 10,
-        "leverage": 1,
+        "positions_lifetime": 15,
+        "n_positions": 11,
+        "leverage": 10,
         "min_available_balance": 5,
-        "load_saved_positions": true,
-        "transfer_ratio_percents": 50,
+        "transfer_ratio_percents": 30,
         "rebalance": true,
         "transfer_type": "arbitrum"
     }

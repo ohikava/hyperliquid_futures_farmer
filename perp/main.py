@@ -1,7 +1,7 @@
 from copy import deepcopy
 from perp.hyperliquid.main import Hyperliquid
 from perp.observer import Observer
-from perp.utils.funcs import load_json_file, run_with_traceback
+from perp.utils.funcs import load_json_file, run_with_traceback, dump_json
 from perp.utils.types import PerpPair, Position, ClosedPosition
 import perp.randomizer as randomizer
 import perp.config as config
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 wallets_path = "wallets"
-
+positions_state_file = "positions_state.json"
 
 class Main():
     def __init__(self):
@@ -47,8 +47,7 @@ class Main():
                     self.observer.observer_stats(*get_profit())
                 except:
                     pass 
-        
-        
+    
     def add_wallets(self, wallets_path: str):
         wallets = load_json_file(wallets_path)
         perp1 = wallets["perp1"]
@@ -59,47 +58,92 @@ class Main():
         perp2: Hyperliquid = Hyperliquid.from_row(perp2['secret'], proxies=perp2['proxies'], wallet_config=wallets_config)
 
         self.pairs.append((perp1, perp2))
-        if not perp1.config['load_saved_positions']:
-            self.clear_perps(self.pairs[-1])
-        else:
-            perp1.close_all_orders()
-            perp2.close_all_orders()
+        perp1.close_all_orders()
+        perp2.close_all_orders()
 
     def run(self):
         ix = 0
         while True:
             print(f"Iteration #{ix} has began")
+            positions_state = load_json_file(positions_state_file)
+            
             for pair in self.pairs:
                 self.load_user_states(pair)
                 self.update_positions(pair)
                 self.check_balances(pair)
+                self.remove_positions(pair)
 
                 p1, p2 = pair 
 
-                open_positions = set(p1.positions.keys()) & set(p2.positions.keys())
-                n_new = randomizer.random_int(p1.config['min_open_positions'], p2.config['max_open_positions']) - len(open_positions)
-                n_new = max(0, n_new)
+                if p1.address not in positions_state:
+                    positions_state[p1.address] = {}
 
+                dump_json(positions_state_file, positions_state)
+     
+                open_positions = set(p1.positions.keys()) & set(p2.positions.keys())
+
+                if time.time() - positions_state[p1.address].get("open_time", time.time()) > p1.config['positions_lifetime'] * 60:
+                    for coin in open_positions:
+                        run_with_traceback(self.close_position, logger, pair, coin)
+                    positions_state[p1.address] = {}
+                    dump_json(positions_state_file, positions_state)
+                    time.sleep(2)
+                    open_positions = set(p1.positions.keys()) & set(p2.positions.keys())
+
+                if not positions_state[p1.address]:
+                    leverage= p1.config['leverage']
+                    balance_p1 = p1.get_balance()
+                    balance_p2 = p2.get_balance()
+
+                    min_eq = min(balance_p1['accountValue'], balance_p2['accountValue'])
+                    total = min_eq * leverage
+                    positions_state[p1.address]['sz_usd'] = round(total / p1.config['n_positions'], 2)
+                    dump_json(positions_state_file, positions_state)
+
+                sz_usd = positions_state[p1.address]['sz_usd']
+
+                n_new = p1.config['n_positions'] - len(open_positions)
+                n_new = max(0, n_new)
+                    
                 coins = randomizer.random_coins(open_positions, n_new)
                 current_sides = [p1.positions[i]['side'] for i in open_positions]
                 sides = randomizer.random_sides(current_sides, len(coins))
                 sides = {coin: side for coin, side in zip(coins, sides)}
 
-                n = len(open_positions) + len(coins)
                 for coin, side in sides.items():
-                    run_with_traceback(self.open_position, logger, pair, coin, side, n)
-                    time.sleep(randomizer.random_int(config.MIN_SLEEP_TIME, config.MAX_SLEEP_TIME))
+                    run_with_traceback(self.open_position, logger, pair, coin, side, sz_usd)
+                    time.sleep(2)
 
-                for coin in open_positions:
-                    position: Position = pair[0].positions[coin]
+                    self.load_user_states(pair)
+                    self.update_positions(pair)
+                    p1, p2 = pair 
+                    
+                    p1_pos = p1.positions.get(coin, {})
+                    p2_pos = p2.positions.get(coin, {})
 
-                    if time.time() - position["open_time"] > position["lifetime"]: 
-                        run_with_traceback(self.close_position, logger, pair, coin)
-                        time.sleep(randomizer.random_int(config.MIN_SLEEP_TIME, config.MAX_SLEEP_TIME))
+                    if p1_pos.get("sz") == p2_pos.get("sz") and p1_pos.get("side") != p2_pos.get("side"):
+                        positions_state[p1.address]['open_time'] = time.time()
+                        dump_json(positions_state_file, positions_state)
+                    else:
+                        if p1_pos.get("side") == constants.LONG:
+                            p1.market_sell(coin, p1_pos.get("sz"))
+                            logging.info(f"{p1.address} closing {coin} {p1_pos.get('sz')} long because position opened wrong")
+                        elif p1_pos.get("side") == constants.SHORT:
+                            p1.market_buy(coin, p1_pos.get("sz"))
+                            logging.info(f"{p1.address} closing {coin} {p1_pos.get('sz')} short because position opened wrong")
 
-                self.remove_positions(pair)
+                        if p2_pos.get("side") == constants.LONG:
+                            p2.market_sell(coin, p2_pos.get("sz"))
+                            logging.info(f"{p2.address} closing {coin} {p2_pos.get('sz')} long because position opened wrong")
+                        elif p2_pos.get("side") == constants.SHORT:
+                            p2.market_buy(coin, p2_pos.get("sz"))
+                            logging.info(f"{p2.address} closing {coin} {p2_pos.get('sz')} short because position opened wrong")
+
+
+                    time.sleep(2)
+            logger.info(f"positions state: {positions_state}")
             ix += 1
-            time.sleep(60 * 1)
+            time.sleep(30 * 1)
 
     def clear_perps(self, perp_pair: Tuple[Hyperliquid, Hyperliquid]):
         p1, p2 = perp_pair
@@ -122,74 +166,54 @@ class Main():
         p1.close_all_positions()
         p2.close_all_positions()
 
-    def open_position(self, perp_pair: Tuple[Hyperliquid, Hyperliquid], coin: str, p1_side: str, n: int):
+    def open_position(self, perp_pair: Tuple[Hyperliquid, Hyperliquid], coin: str, p1_side: str, sz_usd: float):
+        logger.info(f"try to open {coin} for {sz_usd}$")
         p1, p2 = perp_pair
 
-        leverage= p1.config['leverage']
-        one_position_leverage= leverage / n
-
-        balance_p1 = p1.get_balance()
-        balance_p2 = p2.get_balance()
-
-        min_eq = min(balance_p1['accountValue'], balance_p2['accountValue'])
-        min_avail = min(balance_p1['available'], balance_p2['available'])
-
-        if min_avail < p1.config['min_available_balance']:
-            self.kill()
-
-        position_size_usd = min_eq * one_position_leverage
-
         mid_price = p1.get_mid_price(coin)
-        position_size = position_size_usd / mid_price
+        position_size = sz_usd / mid_price
         min_decimals = p1.size_decimals[coin]
         sz = round(position_size, min_decimals)
 
         if p1_side == constants.LONG:
-            ts = [threading.Thread(target=p1.maker_buy, args=(coin, sz)), threading.Thread(target=p2.maker_sell, args=(coin, sz))] 
+            p1.market_buy(coin, sz)
         else:
-            ts = [threading.Thread(target=p1.maker_sell, args=(coin, sz)), threading.Thread(target=p2.maker_buy, args=(coin, sz))]
-        
-        for t in ts:
-            t.start()
-        for t in ts:
-            t.join()
-
+            p1.market_sell(coin, sz)
 
         start_time = time.time()
-        while True:
-            if coin not in p1.orders:
-                p2.cancel(coin, p2.orders.get(coin, {}).get('oid', 0))
-                if coin in p2.orders and p1_side == constants.LONG:
-                    p2.market_sell(coin, p2.orders[coin]['sz'])
-                elif coin in p2.orders:
-                    p2.market_buy(coin, p2.orders[coin]['sz'])
-                break
-            elif coin not in p2.orders:
-                p1.cancel(coin, p1.orders.get(coin, {}).get('oid', 0))
-                if coin in p1.orders and p1_side == constants.LONG:
-                    p1.market_buy(coin, p1.orders[coin]['sz'])
-                elif coin in p1.orders:
-                    p1.market_sell(coin, p1.orders[coin]['sz'])
-                break
-            elif time.time() - start_time > 20:
-                ts_1 = [threading.Thread(target=p1.cancel, args=(coin, p1.orders.get(coin, {}).get('oid', 0))), threading.Thread(target=p2.cancel, args=(coin, p2.orders.get(coin, {}).get('oid', 0)))]
-                for t in ts_1:
-                    t.start()
-                for t in ts_1:
-                    t.join()
-                
-                if p1_side == constants.LONG:
-                    ts = [threading.Thread(target=p1.maker_buy, args=(coin, p1.orders[coin]['sz'])), threading.Thread(target=p2.maker_sell, args=(coin, p2.orders[coin]['sz']))] 
-                else:
-                    ts = [threading.Thread(target=p1.maker_sell, args=(coin, p1.orders[coin]['sz'])), threading.Thread(target=p2.maker_buy, args=(coin, p2.orders[coin]['sz']))]
-                for t in ts:
-                    t.start()
-                for t in ts:
-                    t.join()
+        while coin in p1.orders:
+            if time.time() - start_time > 30:
+                logger.error(f"{p1.address[:5]} can't open {coin} {sz} {p1_side}")
+                orders = p1.get_open_orders()
+                for order in orders:
+                    if order['coin'] == coin:
+                        p1.cancel(coin, order['oid'])
+                        p1.orders.pop(coin)
+                        logger.info(f"{p1.address[:5]} removed {order['side']} order with size {order['sz']}")
+                return  
+            
+        p2_side = constants.SHORT if p1_side == constants.LONG else constants.LONG
+        if p2_side == constants.LONG:
+            p2.market_buy(coin, sz)
+        else:
+            p2.market_sell(coin, sz)
 
-                start_time = time.time()
+        start_time = time.time()
+        while coin in p2.orders:
+            if time.time() - start_time > 60:
+                logger.error(f"{p2.address[:5]} can't open {coin} {sz} {p2_side}")
+                orders = p2.get_open_orders()
+                for order in orders:
+                    if order['coin'] == coin:
+                        p2.cancel(coin, order['oid'])
+                        p2.orders.pop(coin)
+                        logger.info(f"{p2.address[:5]} removed {order['side']} order with size {order['sz']}")
+                break  
+        
+                
 
     def remove_positions(self, pair: Tuple[Hyperliquid, Hyperliquid]):
+        logger.info(f"try to remove positions")
         p1, p2 = pair 
 
         p1_pos = deepcopy(p1.positions)
@@ -198,7 +222,7 @@ class Main():
         for coin, position in p1_pos.items():
             side = position['side']
             if coin not in p2_pos:
-                logger.info(f"removing {coin} {position['sz']} from {p1.address[:5]}")
+                logger.info(f"removing {coin} {position['sz']} from {p1.address[:5]} as it is not hedged")
 
                 if side == constants.LONG:
                     p1.market_sell(coin, position['sz'])
@@ -232,11 +256,12 @@ class Main():
             side = position['side']
 
             if coin not in p1_pos:
-                logger.info(f"removing {coin} {position['sz']} from {p2.address[:5]}")
+                logger.info(f"removing {coin} {position['sz']} from {p2.address[:5]} as it is not hedged")
                 if side == constants.LONG:
                     p2.market_sell(coin, position['sz'])
                 else:
                     p2.market_buy(coin, position['sz'])
+                    
             elif p1_pos[coin]['sz'] < position['sz']:
                 logger.info(f"removing partially {coin} {position['sz']-p1_pos[coin]['sz']} from {p2.address[:5]}")
                 if side == constants.LONG:
@@ -248,70 +273,62 @@ class Main():
                     if side == constants.LONG:
                         p2.market_sell(coin, position['sz'])
                     else:
-                        p2.market_buy(coin, position['sz'])
-
-
-            
-            
-
-
-                
+                        p2.market_buy(coin, position['sz'])     
 
     def close_position(self, pair: Tuple[Hyperliquid, Hyperliquid], coin: str):
-        p1, p2 = pair 
+        logger.info(f"try to close {coin}")
+        p1, p2 = pair
 
-        p1_side = p1.positions[coin]['side']
-        sz = p1.positions[coin]['sz']
+        p1_pos= p1.positions.get(coin)
+        p1_sz = p1_pos['sz']
+        p1_side = p1_pos['side']
 
-        logger.info(f"CLOSING {coin} {sz} BECAUSE IT TIMED OUT")
-        if p1_side == constants.LONG:
-            ts = [threading.Thread(target=p1.maker_sell, args=(coin, sz)), threading.Thread(target=p2.maker_buy, args=(coin, sz))] 
-        else:
-            ts = [threading.Thread(target=p1.maker_buy, args=(coin, sz)), threading.Thread(target=p2.maker_sell, args=(coin, sz))]
+        if not p1_side:
+            logging.error(f"There is no {coin} in {p1.address[:5]} positions")
+            return 
         
-        for t in ts:
-            t.start()
-        for t in ts:
-            t.join()
-
+        if p1_side == constants.LONG:
+            p1.market_sell(coin, p1_sz)
+        else:
+            p1.market_buy(coin, p1_sz)
 
         start_time = time.time()
-        while coin in p1.orders or coin in p2.orders:
-            if coin not in p1.orders:
-                p2.cancel(coin, p2.orders.get(coin, {}).get('oid', 0))
-                if coin in p2.orders and p1_side == constants.LONG:
-                    p2.market_buy(coin, p2.orders[coin]['sz'])
-                elif coin in p2.orders:
-                    p2.market_sell(coin, p2.orders[coin]['sz'])
-                break
-            
-            elif coin not in p2.orders:
-                p1.cancel(coin, p1.orders.get(coin, {}).get('oid', 0))
-                if coin in p1.orders and p1_side == constants.LONG:
-                    p1.market_sell(coin, p1.orders[coin]['sz'])
-                elif coin in p1.orders:
-                    p1.market_buy(coin, p1.orders[coin]['sz'])
-                break
+        while coin in p1.positions:
+            if time.time() - start_time > 60:
+                logger.error(f"{p1.address[:5]} can't close {coin} {p1_sz} {p1_side}")
+                orders = p1.get_open_orders()
+                for order in orders:
+                    if order['coin'] == coin:
+                        p1.cancel(coin, order['oid'])
+                        p1.orders.pop(coin)
+                        logger.info(f"{p1.address[:5]} removed {order['side']} order with size {order['sz']}")
+                return 
+        
+        p2_pos= p2.positions.get(coin)
+        p2_sz = p2_pos['sz']
+        p2_side = p2_pos['side']
 
-            elif time.time() - start_time > 20:
-                ts_1 = [threading.Thread(target=p1.cancel, args=(coin, p1.orders.get(coin, {}).get('oid', 0))), threading.Thread(target=p2.cancel, args=(coin, p2.orders.get(coin, {}).get('oid', 0)))]
-                for t in ts_1:
-                    t.start()
-                for t in ts_1:
-                    t.join()
-
-                if p1_side == constants.LONG:
-                    ts = [threading.Thread(target=p1.maker_sell, args=(coin, p1.orders[coin]['sz'])), threading.Thread(target=p2.maker_buy, args=(coin, p2.orders[coin]['sz']))] 
-                else:
-                    ts = [threading.Thread(target=p1.maker_buy, args=(coin, p1.orders[coin]['sz'])), threading.Thread(target=p2.maker_sell, args=(coin, p2.orders[coin]['sz']))]
+        if not p1_side:
+            logging.error(f"There is not {coin} in {p2.address[:5]} positions")
+            return 
+        
+        if p2_side == constants.LONG:
+            p2.market_sell(coin, p2_sz)
+        else:
+            p2.market_buy(coin, p2_sz)
+        
+        start_time = time.time()
+        while coin in p2.positions:
+            if time.time() - start_time > 60:
+                logger.error(f"{p2.address[:5]} can't close {coin} {p2_sz} {p2_side}")
+                orders = p2.get_open_orders()
+                for order in orders:
+                    if order['coin'] == coin:
+                        p2.cancel(coin, order['oid'])
+                        p2.orders.pop(coin)
+                        logger.info(f"{p2.address[:5]} removed {order['side']} order with size {order['sz']}")
+                break 
                 
-                for t in ts:
-                    t.start()
-                for t in ts:
-                    t.join()
-
-                start_time = time.time()
-            
     def update_positions(self, perp_pair: Tuple[Hyperliquid, Hyperliquid]):
         p1, p2 = perp_pair
 
@@ -354,11 +371,11 @@ class Main():
                     else:
                         logger.error(f"{p1.address[:5]} {send} {r}")
                 else:
-                    logging.info(f"started withdrawing from f{p1.address[:5]}")
+                    logger.info(f"started withdrawing from f{p1.address[:5]}")
                     p1.withdraw_from_bridge(send+1, p1.address)
-                    logging.info(f"tried to send {send} from f{p1.address[:5]} to {p2.address[:5]}")
+                    logger.info(f"tried to send {send} from f{p1.address[:5]} to {p2.address[:5]}")
                     self.contracts.send_usdc(p1.wallet, send, p2.address)
-                    logging.info(f"tried to deposit {send} from f{p2.address}")
+                    logger.info(f"tried to deposit {send} from f{p2.address}")
                     r = self.contracts.deposit(p2.wallet, send)
 
                     if r:
@@ -377,11 +394,11 @@ class Main():
                     else:
                         logger.error(f"{p2.address[:5]} {send} {r}")
                 else:
-                    logging.info(f"started withdrawing from f{p2.address[:5]}")
+                    logger.info(f"started withdrawing from f{p2.address[:5]}")
                     p2.withdraw_from_bridge(send+1, p2.address)
-                    logging.info(f"tried to send {send} from f{p2.address[:5]} to {p1.address[:5]}")
+                    logger.info(f"tried to send {send} from f{p2.address[:5]} to {p1.address[:5]}")
                     self.contracts.send_usdc(p2.wallet, send, p1.address)
-                    logging.info(f"tried to deposit {send} from f{p1.address}")
+                    logger.info(f"tried to deposit {send} from f{p1.address}")
                     r = self.contracts.deposit(p1.wallet, send)
 
                     if r:
@@ -389,7 +406,6 @@ class Main():
                     else:
                         logger.error(f"{p1.address[:5]} {send} {r}")
                     
-
     def load_user_states(self, pair: Tuple[Hyperliquid, Hyperliquid]):
         p1, p2 = pair 
 

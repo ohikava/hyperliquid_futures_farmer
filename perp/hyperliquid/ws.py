@@ -69,7 +69,10 @@ class WebsocketManager(threading.Thread):
         while True:
             time.sleep(30)
             logging.debug("Websocket sending ping")
-            self.ws.send(json.dumps({"method": "ping"}))
+            try:
+                self.ws.send(json.dumps({"method": "ping"}))
+            except:
+                break 
 
     def on_message(self, _ws, message):
         if message == "Websocket connection established.":

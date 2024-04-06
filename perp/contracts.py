@@ -73,7 +73,6 @@ class Contracts:
 
         if wait_tx:
             if self.wait_until_tx_finished(tx_token, eth_account):
-                time.sleep(60)
                 return tx_token, True
             
             else: return tx_token, False
