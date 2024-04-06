@@ -72,7 +72,8 @@ class Main():
                 self.update_positions(pair)
                 self.check_balances(pair)
                 self.remove_positions(pair)
-
+                
+                time.sleep(5)
                 p1, p2 = pair 
 
                 if p1.address not in positions_state:
@@ -235,21 +236,29 @@ class Main():
                     p1.market_sell(coin, position['sz'])
                 else:
                     p1.market_buy(coin, position['sz'])
+            
+            elif round(position['sz'] - p2_pos[coin]['sz'], p1.size_decimals[coin]) > 0:
+                difference = round(position['sz'] - p2_pos[coin]['sz'], p1.size_decimals[coin])
 
-            elif p2_pos[coin]['sz'] < position['sz']:
-                logger.info(f"removing partially {coin} {position['sz']-p2_pos[coin]['sz']} from {p1.address[:5]}")
+                logger.info(f"removing partially {coin} {difference} from {p1.address[:5]}")
 
                 if side == constants.LONG:
-                    r = p1.market_sell(coin, position['sz']-p2_pos[coin]['sz'] )
+                    r = p1.market_sell(coin, difference )
                 else:
-                    r = p1.market_buy(coin, position['sz']-p2_pos[coin]['sz'] )
+                    r = p1.market_buy(coin, difference )
                 if r['code'] == constants.ERROR_FIELD:
                     if side == constants.LONG:
                         p1.market_sell(coin, position['sz'])
                     else:
                         p1.market_buy(coin, position['sz'])
 
-        
+                    if side == constants.LONG:
+                        p2.market_buy(coin, p2_pos[coin]['sz'])
+                    else:
+                        p2.maker_sell(coin, p2_pos[coin]['sz'])
+
+                    
+        time.sleep(5)
         p1_pos = deepcopy(p1.positions)
         p2_pos = deepcopy(p2.positions)
         for coin, position in p2_pos.items():
@@ -261,27 +270,33 @@ class Main():
                     p2.market_sell(coin, position['sz'])
                 else:
                     p2.market_buy(coin, position['sz'])
-                    
-            elif p1_pos[coin]['sz'] < position['sz']:
-                logger.info(f"removing partially {coin} {position['sz']-p1_pos[coin]['sz']} from {p2.address[:5]}")
+
+            elif round(position['sz'] - p1_pos[coin]['sz'], p1.size_decimals[coin]) > 0:
+                difference = round(position['sz'] - p1_pos[coin]['sz'], p1.size_decimals[coin]) 
+                logger.info(f"removing partially {coin} {difference} from {p2.address[:5]}")
                 if side == constants.LONG:
-                    r = p2.market_sell(coin, position['sz']-p1_pos[coin]['sz'])
+                    r = p2.market_sell(coin, difference)
                 else:
-                    r = p2.market_buy(coin, position['sz']-p1_pos[coin]['sz'])
+                    r = p2.market_buy(coin, difference)
 
                 if r['code'] == constants.ERROR_FIELD:
                     if side == constants.LONG:
                         p2.market_sell(coin, position['sz'])
                     else:
-                        p2.market_buy(coin, position['sz'])     
+                        p2.market_buy(coin, position['sz'])  
+
+                    if side == constants.LONG:
+                        p1.market_buy(coin, p1_pos[coin]['sz'])
+                    else:
+                        p1.market_sell(coin, p1_pos[coin]['sz'])   
 
     def close_position(self, pair: Tuple[Hyperliquid, Hyperliquid], coin: str):
         logger.info(f"try to close {coin}")
         p1, p2 = pair
 
-        p1_pos= p1.positions.get(coin)
-        p1_sz = p1_pos['sz']
-        p1_side = p1_pos['side']
+        p1_pos= p1.positions.get(coin, {})
+        p1_sz = p1_pos.get('sz', 0)
+        p1_side = p1_pos.get('side')
 
         if not p1_side:
             logging.error(f"There is no {coin} in {p1.address[:5]} positions")
@@ -304,9 +319,9 @@ class Main():
                         logger.info(f"{p1.address[:5]} removed {order['side']} order with size {order['sz']}")
                 return 
         
-        p2_pos= p2.positions.get(coin)
-        p2_sz = p2_pos['sz']
-        p2_side = p2_pos['side']
+        p2_pos= p2.positions.get(coin, {})
+        p2_sz = p2_pos.get('sz')
+        p2_side = p2_pos.get('side')
 
         if not p1_side:
             logging.error(f"There is not {coin} in {p2.address[:5]} positions")
@@ -382,6 +397,7 @@ class Main():
                         logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
                     else:
                         logger.error(f"{p1.address[:5]} {send} {r}")
+                    time.sleep(15)
             else:
                 logger.info(f"{p2.address[:5]}:{round(p2_balance, 2)} > {p1.address[:5]}:{round(p1_balance, 2)}")
 
@@ -405,6 +421,7 @@ class Main():
                         logger.info(f"successfully transfered {send} from {p1.address[:5]} to {p2.address[:5]}")
                     else:
                         logger.error(f"{p1.address[:5]} {send} {r}")
+                    time.sleep(15)
                     
     def load_user_states(self, pair: Tuple[Hyperliquid, Hyperliquid]):
         p1, p2 = pair 

@@ -79,6 +79,8 @@ class Hyperliquid(API, HyperliquidBase):
 
                 if not self.orders[coin]['sz']:
                     self.orders.pop(coin) 
+                elif self.orders[coin]['sz'] < 0:
+                    self.orders[coin]['side'] = constants.LONG if self.orders[coin]['side'] == constants.SHORT else constants.SHORT
             
             if coin in deepcopy(self.positions):
                 if side == self.positions[coin]['side']:
@@ -88,6 +90,8 @@ class Hyperliquid(API, HyperliquidBase):
 
                     if not self.positions[coin]['sz']:
                         self.positions.pop(coin)
+                    elif self.positions[coin]['sz'] < 0:
+                        self.positions[coin]['side'] = constants.LONG if self.positions[coin]['side'] == constants.SHORT else constants.SHORT
             else:
                 self.positions[coin] = {
                     "side": side,
@@ -102,6 +106,10 @@ class Hyperliquid(API, HyperliquidBase):
     
     """Market"""
     def market_buy(self, coin, sz, px=None):
+        if round(sz, self.size_decimals[coin]) <= 0:
+            logger.error(f"{self.address[:5]}  {coin} {constants.LONG}{sz} size is zero or below")
+            return {'code': constants.ERROR_FIELD}
+        
         r = self._market_open(coin, True, sz, px)
         if r['code'] == constants.FILLED and float(r['totalSz']) == sz:
             logger.info(f"{self.address[:5]} {coin} {constants.LONG} {r}")
@@ -114,10 +122,14 @@ class Hyperliquid(API, HyperliquidBase):
                 "oid": r["oid"]
             }
         else:
-            logger.error(f"{coin} {constants.LONG} {self.address[:5]} {sz} {r}")
+            logger.error(f"{self.address[:5]} {coin} {constants.LONG} {sz} {r}")
             return r 
     
     def market_sell(self, coin, sz, px=None):
+        if round(sz, self.size_decimals[coin]) <= 0:
+            logger.error(f"{self.address[:5]}  {coin} {constants.LONG}{sz} size is zero or below")
+            return {'code': constants.ERROR_FIELD}
+        
         r = self._market_open(coin, False, sz, px)
         if r['code'] == constants.FILLED and float(r['totalSz']) == sz:
             logger.info(f"{self.address[:5]} {coin} {constants.SHORT} {r}")
@@ -130,7 +142,7 @@ class Hyperliquid(API, HyperliquidBase):
                 "oid": r["oid"]
             }
         else:
-            logger.error(f"{coin} {constants.SHORT} {self.address[:5]} {sz} {r}")
+            logger.error(f"{self.address[:5]} {coin} {constants.SHORT} {sz} {r}")
             return r 
 
     """Maker"""
