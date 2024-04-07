@@ -67,7 +67,7 @@ class Observer:
                 res += str(positions1[coin])
             elif positions1[coin]['sz'] != positions2[coin]['sz']:
                 res += f"\nSIZED DOESN'T MATCH and {address2[:5]}\n"
-                res += f"{address1[:5]}: {positions1[coin]["sz"]}. {address2[:5]}: {positions2[coin]["sz"]}"
+                res += f"{address1[:5]}: {positions1[coin]['sz']}. {address2[:5]}: {positions2[coin]['sz']}"
 
         for coin in positions2:
             if coin not in positions1:
