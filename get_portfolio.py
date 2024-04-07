@@ -4,8 +4,17 @@ import perp.constants as constants
 import perp.config as config 
 # from perp.depositer import Transfer
 from eth_account import Account
+from perp.encode import load_encoded
+from getpass import getpass
+import os 
 
-str1 = load_json_file("wallets/1.json")
+password = getpass()
+
+name = "1"
+conf = load_json_file(os.path.join("wallets_configs", f"{name}.json"))
+pk = load_encoded(password, os.path.join("wallets_encoded", name))
+
+str1 = {**conf, **pk}
 secret1 = str1['perp1']['secret']
 secret2 = str1['perp2']['secret']
 proxies1 = str1['perp1']['proxies']
@@ -43,3 +52,5 @@ for coin in positions2:
 print(format_portfolio(portfolio1))
 print('\n')
 print(format_portfolio(portfolio2))
+
+exit()

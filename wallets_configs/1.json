@@ -1,0 +1,11 @@
+{
+    "config": {
+        "positions_lifetime": 180,
+        "n_positions": 10,
+        "leverage": 10,
+        "min_available_balance": 5,
+        "transfer_ratio_percents": 30,
+        "rebalance": true,
+        "transfer_type": "arbitrum"
+    }
+}

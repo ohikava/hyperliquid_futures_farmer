@@ -1,0 +1,16 @@
+{
+    "perp1": {
+        "secret": "",
+        "proxies": {
+            "http": "",
+            "https": ""
+        }
+    },
+    "perp2": {
+        "secret": "",
+        "proxies": {
+            "http": "",
+            "https": ""
+        }
+    }
+}

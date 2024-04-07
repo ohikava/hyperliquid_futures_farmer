@@ -14,10 +14,13 @@ import os
 import threading
 from perp.contracts import Contracts
 from perp.stats import get_profit
+from perp.encode import load_encoded
+from getpass import getpass
 logger = logging.getLogger(__name__)
 
 
-wallets_path = "wallets"
+wallets_encoded = "wallets_encoded"
+wallets_configs = "wallets_configs"
 positions_state_file = "positions_state.json"
 
 class Main():
@@ -25,12 +28,13 @@ class Main():
         self.observer = Observer()
         self.pairs: List[Tuple[Hyperliquid, Hyperliquid]] = []
         self.last_closed_position = ()
-
-        wallets = os.listdir(wallets_path)
+        password = getpass()
+        wallets = os.listdir(wallets_encoded)
         for wallet in wallets:
-            if not wallet.endswith('.json'):
-                continue
-            self.add_wallets(join(wallets_path, wallet))
+            pk = load_encoded(password, os.path.join(wallets_encoded, wallet))
+            conf = load_json_file(os.path.join(wallets_configs, wallet + ".json"))
+            wallet_data = {**pk, **conf}
+            self.add_wallets(wallet_data)
         self.contracts = Contracts()
         self.last_notification_time = time.time()
         try:
@@ -48,8 +52,7 @@ class Main():
                 except:
                     pass 
     
-    def add_wallets(self, wallets_path: str):
-        wallets = load_json_file(wallets_path)
+    def add_wallets(self, wallets: dict):
         perp1 = wallets["perp1"]
         perp2 = wallets["perp2"]
         wallets_config = wallets['config']
