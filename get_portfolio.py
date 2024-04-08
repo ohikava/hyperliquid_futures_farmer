@@ -31,18 +31,16 @@ portfolio2 = p2.get_portfolio()
 positions1 = {i["coin"]: i for i in portfolio1["positions"]}
 positions2 = {i["coin"]: i for i in portfolio2["positions"]}
 
-told = []
 for coin in positions1:
     if coin not in positions2:
         print(f"NOT MIRRORED POSITION in {p1.address[:5]}")
         print(positions1[coin])
-    elif positions1[coin]['side'] == positions2[coin]['side'] and coin not in told:
+    elif positions1[coin]['side'] == positions2[coin]['side']:
         print(f"THE SAME SIDE BETWEEN {p1.address[:5]} and {p2.address[:5]}")
         print(positions1[coin])
-        told.append(coin)
-    elif positions1[coin]['sz'] != positions2[coin]['sz'] and coin not in told:
+    elif positions1[coin]['sz'] != positions2[coin]['sz']:
         print(f"SIZED DOESN'T MATCH and {p2.address[:5]}")
-        print(f"{p1.address[:5]}: {positions1[coin]["sz"]}. {p2.address[:5]}: {positions2[coin]["sz"]}") 
+        print(f"{p1.address[:5]}: {positions1[coin]['sz']}. {p2.address[:5]}: {positions2[coin]['sz']}") 
 
 for coin in positions2:
     if coin not in positions1:
