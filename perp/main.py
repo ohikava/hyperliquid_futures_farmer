@@ -11,6 +11,7 @@ from os.path import join
 from typing import Tuple , List
 import logging 
 import os 
+import traceback 
 import threading
 from perp.contracts import Contracts
 from perp.stats import get_profit
@@ -44,12 +45,35 @@ class Main():
         threading.Thread(target=self.observe).start()
 
     def observe(self):
+        try:
+            self.observer.observer_stats(*get_profit())
+            for pair in self.pairs:
+                p1, p2 = pair 
+                self.observer.porftolio_state(p1.address, p2.address, p1.get_portfolio(), p2.get_portfolio())
+            
+                msg = f"{p1.address[:5]}\n"
+                msg += f"USDC Balance: {round(self.contracts.usdc_contract.functions.balanceOf(p1.address).call() / 10**constants.USDC_DECIMALS, 2)}\n"
+                msg += f"ETH Balance: {round(self.contracts.w3.from_wei(self.contracts.w3.eth.get_balance(p1.address), "ether"), 6)}\n"
+                msg += f"\n{p2.address[:5]}\n"
+
+                msg += f"USDC Balance: {round(self.contracts.usdc_contract.functions.balanceOf(p2.address).call() / 10**constants.USDC_DECIMALS, 2)}\n"
+                msg += f"ETH Balance: {round(self.contracts.w3.from_wei(self.contracts.w3.eth.get_balance(p2.address), "ether"), 6)}"
+
+                self.observer.send_sync_message(msg)
+                time.sleep(5)
+        except:
+            logger.error(traceback.format_exc())
         while True:
             if time.time() - self.last_notification_time > config.NOTIFY_INTERVAL * 60:
                 self.last_notification_time = time.time()
                 try:
                     self.observer.observer_stats(*get_profit())
-                except:
+                    for pair in self.pairs:
+                        p1, p2 = pair 
+                        self.observer.porftolio_state(p1.address, p2.address, p1.get_portfolio(), p2.get_portfolio())
+                        time.sleep(5)
+                except Exception:
+                    logger.error(traceback.format_exc())
                     pass 
     
     def add_wallets(self, wallets: dict):

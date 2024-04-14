@@ -123,7 +123,7 @@ def format_portfolio(portfolio):
 
     res += f'account-value: {portfolio["account-value"]}\n'
     res += f'leverage: {round(float(portfolio["leverage"]), 3)}x\n'
-    res += f'pnl: {round(float(portfolio["unrealized_pnl"]))}\n'
+    res += f'pnl: {round(float(portfolio["unrealized_pnl"]), 2)}\n'
     res += f'margin-ratio: {round(float(portfolio["margin-ratio"]), 3)}'
     return res 
 
