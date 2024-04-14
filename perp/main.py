@@ -53,11 +53,11 @@ class Main():
             
                 msg = f"{p1.address[:5]}\n"
                 msg += f"USDC Balance: {round(self.contracts.usdc_contract.functions.balanceOf(p1.address).call() / 10**constants.USDC_DECIMALS, 2)}\n"
-                msg += f"ETH Balance: {round(self.contracts.w3.from_wei(self.contracts.w3.eth.get_balance(p1.address), "ether"), 6)}\n"
+                msg += f"ETH Balance: {round(self.contracts.w3.from_wei(self.contracts.w3.eth.get_balance(p1.address), 'ether'), 6)}\n"
                 msg += f"\n{p2.address[:5]}\n"
 
                 msg += f"USDC Balance: {round(self.contracts.usdc_contract.functions.balanceOf(p2.address).call() / 10**constants.USDC_DECIMALS, 2)}\n"
-                msg += f"ETH Balance: {round(self.contracts.w3.from_wei(self.contracts.w3.eth.get_balance(p2.address), "ether"), 6)}"
+                msg += f"ETH Balance: {round(self.contracts.w3.from_wei(self.contracts.w3.eth.get_balance(p2.address), 'ether'), 6)}"
 
                 self.observer.send_sync_message(msg)
                 time.sleep(5)
