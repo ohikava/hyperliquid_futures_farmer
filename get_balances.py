@@ -26,8 +26,8 @@ p1 = Hyperliquid.from_row(secret1, proxies=proxies1, wallet_config=wallet_config
 p2 = Hyperliquid.from_row(secret2, proxies=proxies2, wallet_config=wallet_config)
 contracts = Contracts()
 print(f"USDC Balance {p1.address[:5]}: {round(contracts.usdc_contract.functions.balanceOf(p1.address).call() / 10**constants.USDC_DECIMALS, 2)} USDC")
-print(f"ETH Balance {p1.address[:5]}: {round(contracts.w3.from_wei(contracts.w3.eth.get_balance(p1.address), "ether"), 6)} ETH")
+print(f"ETH Balance {p1.address[:5]}: {round(contracts.w3.from_wei(contracts.w3.eth.get_balance(p1.address), 'ether'), 6)} ETH")
 
 print()
 print(f"USDC Balance {p2.address[:5]}: {round(contracts.usdc_contract.functions.balanceOf(p2.address).call() / 10**constants.USDC_DECIMALS, 2)} USDC")
-print(f"ETH Balance {p2.address[:5]}: {round(contracts.w3.from_wei(contracts.w3.eth.get_balance(p2.address), "ether"), 6)} ETH")
+print(f"ETH Balance {p2.address[:5]}: {round(contracts.w3.from_wei(contracts.w3.eth.get_balance(p2.address), 'ether'), 6)} ETH")
