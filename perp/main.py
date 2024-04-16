@@ -38,15 +38,15 @@ class Main():
             self.add_wallets(wallet_data)
         self.contracts = Contracts()
         self.last_notification_time = time.time()
-        try:
-            self.observer.observer_stats(*get_profit())
-        except:
-            pass 
+        # try:
+        #     self.observer.observer_stats(*get_profit())
+        # except:
+        #     pass 
         threading.Thread(target=self.observe).start()
 
     def observe(self):
         try:
-            self.observer.observer_stats(*get_profit())
+            # self.observer.observer_stats(*get_profit())
             for pair in self.pairs:
                 p1, p2 = pair 
                 self.observer.porftolio_state(p1.address, p2.address, p1.get_portfolio(), p2.get_portfolio())
@@ -67,7 +67,7 @@ class Main():
             if time.time() - self.last_notification_time > config.NOTIFY_INTERVAL * 60:
                 self.last_notification_time = time.time()
                 try:
-                    self.observer.observer_stats(*get_profit())
+                    # self.observer.observer_stats(*get_profit())
                     for pair in self.pairs:
                         p1, p2 = pair 
                         self.observer.porftolio_state(p1.address, p2.address, p1.get_portfolio(), p2.get_portfolio())
