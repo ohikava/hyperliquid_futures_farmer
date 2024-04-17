@@ -9,8 +9,8 @@ def random_int(min, max):
         return min 
     return random.randrange(min, max)
 
-def random_coins(open_positions, n):
-    return random.sample([coin for coin in config.COINS if coin not in open_positions], n)
+def random_coins(open_positions, n, coins):
+    return random.sample([coin for coin in coins if coin not in open_positions], n)
 
 
 def random_sides(current_sides, n):

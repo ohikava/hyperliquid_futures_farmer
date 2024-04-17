@@ -29,11 +29,16 @@ class Main():
         self.observer = Observer()
         self.pairs: List[Tuple[Hyperliquid, Hyperliquid]] = []
         self.last_closed_position = ()
-        password = getpass()
         wallets = os.listdir(wallets_encoded)
         for wallet in wallets:
-            pk = load_encoded(password, os.path.join(wallets_encoded, wallet))
+            wallet = wallet.replace(".json", "")
             conf = load_json_file(os.path.join(wallets_configs, wallet + ".json"))
+            if conf['config']['encoded']:
+                password = getpass()
+                pk = load_encoded(password, os.path.join(wallets_encoded, wallet))
+            else:
+                pk = load_json_file(os.path.join(wallets_encoded, wallet))
+
             wallet_data = {**pk, **conf}
             self.add_wallets(wallet_data)
         self.contracts = Contracts()
@@ -133,7 +138,7 @@ class Main():
                 n_new = p1.config['n_positions'] - len(open_positions)
                 n_new = max(0, n_new)
                     
-                coins = randomizer.random_coins(open_positions, n_new)
+                coins = randomizer.random_coins(open_positions, n_new, p1.config['coins'])
                 current_sides = [p1.positions[i]['side'] for i in open_positions]
                 sides = randomizer.random_sides(current_sides, len(coins))
                 sides = {coin: side for coin, side in zip(coins, sides)}

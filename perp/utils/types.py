@@ -93,7 +93,9 @@ WalletConfig = TypedDict(
         "min_available_balance": float,
         "transfer_ratio_percents": float,
         "rebalance": bool,
-        "transfer_type": str 
+        "transfer_type": str ,
+        "coins": list, 
+        "encoded": bool 
     }
 )
 
