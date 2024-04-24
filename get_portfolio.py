@@ -13,7 +13,7 @@ wallets = os.listdir("wallets_configs")
 for wallet in wallets:
     wallet = wallet.replace(".json", "")
     conf = load_json_file(os.path.join("wallets_configs", wallet + ".json"))
-    if conf['encoded']:
+    if conf['config']['encoded']:
         password = getpass()
         pk = load_encoded(password, os.path.join("wallets_encoded", wallet))
     else:

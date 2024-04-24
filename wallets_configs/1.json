@@ -1,11 +1,13 @@
 {
     "config": {
-        "positions_lifetime": 180,
-        "n_positions": 10,
-        "leverage": 10,
+        "positions_lifetime": 60,
+        "n_positions": 2,
+        "leverage": 4,
         "min_available_balance": 5,
         "transfer_ratio_percents": 30,
         "rebalance": true,
-        "transfer_type": "arbitrum"
+        "transfer_type": "arbitrum",
+        "encoded": true,
+        "coins": ["INJ", "kPEPE", "FTM", "NEAR", "RNDR", "RUNE", "SUI", "AVAX", "TIA", "WLD", "ARB", "MATIC", "ADA", "APT", "MKR", "OP", "LDO", "BNB", "AAVE", "APE", "ATOM", "BCH", "CFX", "COMP", "DOGE", "DOT", "DYDX", "LINK", "LTC", "NEO", "kSHIB", "UNI", "XRP"]
     }
 }
