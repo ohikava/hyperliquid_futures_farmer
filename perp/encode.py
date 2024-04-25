@@ -1,5 +1,5 @@
 import hashlib 
-from cryptography.fernet import Fernet 
+    from cryptography.fernet import Fernet 
 import json 
 
 def encode(data, password):

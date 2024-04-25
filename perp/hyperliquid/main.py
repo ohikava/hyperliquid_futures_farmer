@@ -403,6 +403,8 @@ class Hyperliquid(API, HyperliquidBase):
         open_orders = self.get_open_orders()
 
         for order in open_orders:
+            if order['coin'] == 'PURR/USDC':
+                continue
             self.cancel(order['coin'], order['oid'])
 
     def close_all_positions(self):
